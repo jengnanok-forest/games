@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深海霓虹：巨獸獵場 3.0</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        overflow: hidden;
+        font-family: 'Arial Black', Impact, sans-serif;
+        background-color: #030712;
+        display: flex;
+        height: 100vh;
+        user-select: none;
+        color: white;
+    }
+
+    #game-container {
+        flex-grow: 1;
+        position: relative;
+        height: 100vh;
+        background: #020914;
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: none; /* 隱藏原生游標 */
+    }
+
+    #sidebar {
+        width: 340px;
+        background: linear-gradient(180deg, #110726 0%, #030308 100%);
+        border-left: 4px solid #ff00ea;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+        box-shadow: -5px 0 25px rgba(0,0,0,0.9);
+    }
+
+    .arcade-title {
+        text-align: center;
+        color: #fffb00;
+        font-size: 24px;
+        text-shadow: 0 0 10px #fffb00, 0 0 20px #ff8800;
+        margin-bottom: 15px;
+    }
+
+    #coin-board {
+        background: rgba(0,0,0,0.85);
+        border: 2px solid #00f3ff;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        margin-bottom: 15px;
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    }
+
+    .coin-title { font-size: 13px; color: #aaa; }
+    .coin-value { font-size: 34px; color: #fffb00; text-shadow: 0 0 10px #fffb00; }
+
+    #weapon-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    #weapon-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    #weapon-container::-webkit-scrollbar-thumb {
+        background: #ff00ea;
+        border-radius: 3px;
+    }
+
+    .weapon-btn {
+        width: 100%;
+        background: #1c1c2e;
+        border: 2px solid #444;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+        font-size: 15px;
+        cursor: pointer;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .weapon-btn.active {
+        border-color: #00f3ff;
+        background: rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+    }
+
+    .weapon-cost {
+        background: #ff00ea;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .instruction {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #ddd;
+        line-height: 1.5;
+        margin-top: 10px;
+    }
+
+    .instruction b { color: #fffb00; }
+
+    .shake { animation: shakeAnim 0.25s ease-in-out; }
+    @keyframes shakeAnim {
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(-6px, 6px); }
+        75% { transform: translate(6px, -6px); }
+    }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<div id="sidebar">
+    <h1 class="arcade-title">LEVIATHAN HUNT</h1>
+    
+    <div id="coin-board">
+        <div class="coin-title">CREDIT / 金幣</div>
+        <div class="coin-value" id="coin-display">3000</div>
+    </div>
+
+    <div id="weapon-container"></div>
+
+    <div class="instruction">
+        <b>【戰鬥操作指南】</b><br>
+        1. <b>移動滑鼠</b>：精準瞄準魚隻部位。<br>
+        2. <b>長按 [空白鍵 Space]</b>：連發攻擊。<br>
+        3. <b>扭動姿態</b>：注意長型深海巨獸受擊時會產生激烈痙攣掙扎！
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('game-container');
+
+    function resizeCanvas() {
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let coins = 3000;
+    let currentWeapon = null;
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+    let isSpacePressed = false;
+    let lastFireTime = 0;
+
+    const fishes = [];
+    const particles = [];
+    const blasts = [];
+
+    // --- 擴充魚類 (包含巨型鯊魚與多節長型巨獸) ---
+    const fishTypes = [
+        { emoji: '🐟', name: '小青魚', hp: 1, reward: 5, size: 30, speedRange: [2.5, 3.5], prob: 0.25 },
+        { emoji: '🐠', name: '熱帶飛魚', hp: 3, reward: 15, size: 40, speedRange: [2.5, 4], prob: 0.2 },
+        { emoji: '🐡', name: '刺爆河豚', hp: 8, reward: 40, size: 55, speedRange: [1.5, 2.5], prob: 0.15 },
+        { emoji: '🪼', name: '霓虹水母', hp: 12, reward: 80, size: 60, speedRange: [1, 2], prob: 0.1, glow: '#00f3ff' },
+        
+        // --- 長型與蛇形魚種 (Serpentine Multi-Segment) ---
+        { isSerpentine: true, emojiHead: '🐲', emojiBody: '🟢', name: '電光深海海蛇', hp: 25, reward: 180, size: 45, segments: 6, speedRange: [2, 3], prob: 0.08, glow: '#00ff66' },
+        { isSerpentine: true, emojiHead: '🐊', emojiBody: '🟩', name: '遠古深海巨鱷', hp: 50, reward: 350, size: 55, segments: 7, speedRange: [1.8, 2.6], prob: 0.06 },
+        { isSerpentine: true, emojiHead: '🐍', emojiBody: '💜', name: '虛空紫晶巨蟒', hp: 120, reward: 900, size: 65, segments: 10, speedRange: [1.5, 2.2], prob: 0.04, isBoss: true, glow: '#a855f7' },
+
+        // --- 鯊魚級大型與巨獸 Boss ---
+        { emoji: '🦈', name: '深海大白鯊', hp: 80, reward: 600, size: 110, speedRange: [2, 3], prob: 0.05, isBoss: true },
+        { emoji: '🦑', name: '狂暴大王烏賊', hp: 150, reward: 1200, size: 130, speedRange: [1.2, 2], prob: 0.03, isBoss: true, glow: '#ff0055' },
+        { emoji: '🐋', name: '星空深海巨鯨', hp: 300, reward: 2500, size: 170, speedRange: [0.8, 1.4], prob: 0.02, isBoss: true, glow: '#3b82f6' },
+        { isSerpentine: true, emojiHead: '🐉', emojiBody: '🔥', name: '滅世金光神龍', hp: 600, reward: 5000, size: 85, segments: 12, speedRange: [1.5, 2.5], prob: 0.01, isBoss: true, glow: '#ffd700' }
+    ];
+
+    // --- 擴充武器庫 (6種武器) ---
+    const weapons = [
+        { id: 'gun', icon: '🔫', name: '單發水炮', damage: 1, cost: 2, cooldown: 120, color: '#00f3ff' },
+        { id: 'net', icon: '🕸️', name: '電磁大網', damage: 5, cost: 10, cooldown: 140, color: '#ff00ea' },
+        { id: 'harpoon', icon: '🔱', name: '破甲巨矛', damage: 15, cost: 50, cooldown: 180, color: '#fffb00' },
+        { id: 'lightning', icon: '⚡', name: '高壓閃電風暴', damage: 35, cost: 120, cooldown: 200, color: '#a855f7' },
+        { id: 'bomb', icon: '🚀', name: '深水導向炸彈', damage: 100, cost: 300, cooldown: 300, color: '#ff3300' },
+        { id: 'laser', icon: '💥', name: '毀滅核光束', damage: 250, cost: 750, cooldown: 400, color: '#39ff14' }
+    ];
+
+    const weaponContainer = document.getElementById('weapon-container');
+    const coinDisplay = document.getElementById('coin-display');
+
+    weapons.forEach(w => {
+        const btn = document.createElement('button');
+        btn.className = 'weapon-btn';
+        btn.id = `btn-${w.id}`;
+        btn.innerHTML = `<span>${w.icon} ${w.name} (傷害:${w.damage})</span><span class="weapon-cost">-$${w.cost}</span>`;
+        btn.onclick = () => selectWeapon(w);
+        weaponContainer.appendChild(btn);
+    });
+
+    function selectWeapon(w) {
+        currentWeapon = w;
+        document.querySelectorAll('.weapon-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`btn-${w.id}`).classList.add('active');
+    }
+    selectWeapon(weapons[0]);
+
+    function updateCoins(val) {
+        coins += val;
+        coinDisplay.innerText = coins;
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.clientX - rect.left;
+        mouseY = e.clientY - rect.top;
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (!isSpacePressed) {
+                isSpacePressed = true;
+                tryFireWeapon();
+            }
+        }
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') isSpacePressed = false;
+    });
+
+    function tryFireWeapon() {
+        const now = Date.now();
+        if (now - lastFireTime >= currentWeapon.cooldown) {
+            lastFireTime = now;
+            fireWeapon(mouseX, mouseY);
+        }
+    }
+
+    function fireWeapon(x, y) {
+        if (coins < currentWeapon.cost) {
+            addParticle("金幣不足!", x, y, "#ff3333");
+            return;
+        }
+
+        updateCoins(-currentWeapon.cost);
+        blasts.push({ x: x, y: y, radius: 10, maxRadius: 60, color: currentWeapon.color, alpha: 1 });
+
+        // 判定碰撞 (支援巨型魚隻與長型魚身節點判定)
+        for (let i = fishes.length - 1; i >= 0; i--) {
+            const fish = fishes[i];
+            let isHit = false;
+
+            if (fish.type.isSerpentine) {
+                // 長型魚類：檢測每一個身體節點與準星的距離
+                const spacing = fish.type.size * 0.55;
+                for (let j = 0; j < fish.type.segments; j++) {
+                    const segX = fish.x - j * spacing * Math.cos(fish.angle);
+                    const segY = fish.y - j * spacing * Math.sin(fish.angle);
+                    if (Math.hypot(x - segX, y - segY) < fish.type.size * 0.7) {
+                        isHit = true;
+                        break;
+                    }
+                }
+            } else {
+                // 一般大型/鯊魚類判定
+                if (Math.hypot(x - fish.x, y - fish.y) < fish.type.size * 0.85) {
+                    isHit = true;
+                }
+            }
+
+            if (isHit) {
+                fish.hp -= currentWeapon.damage;
+                fish.hitTimer = 12; // 觸發劇烈掙扎痙攣狀態
+
+                addParticle(`-${currentWeapon.damage}`, x + (Math.random()*30-15), y - 10, '#ffffff');
+
+                if (fish.hp <= 0) {
+                    updateCoins(fish.type.reward);
+                    addParticle(`+$${fish.type.reward}`, fish.x, fish.y, '#fffb00', true);
+                    
+                    if (fish.type.isBoss) {
+                        document.body.classList.add('shake');
+                        setTimeout(() => document.body.classList.remove('shake'), 250);
+                    }
+                    fishes.splice(i, 1);
+                }
+                break; // 一發砲彈擊中一個目標
+            }
+        }
+    }
+
+    function spawnFish() {
+        let rand = Math.random();
+        let cumulative = 0;
+        let type = fishTypes[0];
+        for (let t of fishTypes) {
+            cumulative += t.prob;
+            if (rand <= cumulative) { type = t; break; }
+        }
+
+        const edge = Math.floor(Math.random() * 4);
+        let x, y, targetX, targetY;
+        const margin = 200;
+
+        if (edge === 0) { x = Math.random() * canvas.width; y = -margin; targetX = Math.random() * canvas.width; targetY = canvas.height + margin; }
+        else if (edge === 1) { x = canvas.width + margin; y = Math.random() * canvas.height; targetX = -margin; targetY = Math.random() * canvas.height; }
+        else if (edge === 2) { x = Math.random() * canvas.width; y = canvas.height + margin; targetX = Math.random() * canvas.width; targetY = -margin; }
+        else { x = -margin; y = Math.random() * canvas.height; targetX = canvas.width + margin; targetY = Math.random() * canvas.height; }
+
+        const angle = Math.atan2(targetY - y, targetX - x);
+        const speed = Math.random() * (type.speedRange[1] - type.speedRange[0]) + type.speedRange[0];
+
+        fishes.push({
+            id: Math.random() * 1000,
+            x: x, y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            angle: angle,
+            type: type,
+            hp: type.hp, maxHp: type.hp,
+            hitTimer: 0,
+            phaseOffset: Math.random() * 100
+        });
+    }
+
+    function addParticle(text, x, y, color, isBig = false) {
+        particles.push({ text, x, y, color, alpha: 1, isBig });
+    }
+
+    // --- 主遊戲動畫繪製迴圈 (Game Loop) ---
+    function gameLoop() {
+        if (isSpacePressed) tryFireWeapon();
+
+        // 背景
+        ctx.fillStyle = '#020914';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width/1.2);
+        grad.addColorStop(0, '#0a3264');
+        grad.addColorStop(1, '#020914');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const currentTime = Date.now();
+
+        // 渲染魚群
+        for (let i = fishes.length - 1; i >= 0; i--) {
+            const fish = fishes[i];
+            fish.x += fish.vx;
+            fish.y += fish.vy;
+
+            const isStruggling = fish.hitTimer > 0;
+            if (isStruggling) fish.hitTimer--;
+
+            // 動態時間頻率：受擊掙扎時擺動頻率高達 4 倍！
+            const timeParam = (currentTime * (isStruggling ? 0.035 : 0.008)) + fish.phaseOffset;
+
+            ctx.save();
+            ctx.translate(fish.x, fish.y);
+
+            if (fish.type.isSerpentine) {
+                // ==================== 長型/蛇形魚類：多節波浪連動渲染 ====================
+                const segCount = fish.type.segments;
+                const spacing = fish.type.size * 0.5;
+                const waveAmp = isStruggling ? 28 : 12; // 掙扎時波浪擺幅劇烈加大
+
+                for (let j = segCount - 1; j >= 0; j--) {
+                    ctx.save();
+                    // 身體節點沿著運動方向的垂直線產生正弦波扭動
+                    const waveOffset = Math.sin(timeParam - j * 0.5) * waveAmp;
+                    const localX = -j * spacing * Math.cos(0) + waveOffset * Math.sin(0);
+                    const localY = -j * spacing * Math.sin(0) - waveOffset * Math.cos(0);
+
+                    ctx.translate(localX, localY);
+                    ctx.rotate(fish.angle);
+                    ctx.scale(-1, 1);
+
+                    // 掙扎時每個關節劇烈扭轉
+                    if (isStruggling) {
+                        ctx.rotate(Math.sin(currentTime * 0.05 + j) * 0.35);
+                        ctx.filter = 'brightness(2.5) saturate(2)';
+                    } else if (fish.type.glow) {
+                        ctx.shadowColor = fish.type.glow;
+                        ctx.shadowBlur = 15;
+                    }
+
+                    ctx.font = `${fish.type.size * (j === 0 ? 1.1 : 0.85)}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(j === 0 ? fish.type.emojiHead : fish.type.emojiBody, 0, 0);
+                    ctx.restore();
+                }
+            } else {
+                // ==================== 一般/大型鯊魚類：矩陣扭曲擺動 (Skew Transform) ====================
+                ctx.rotate(fish.angle);
+                ctx.scale(-1, 1);
+
+                // 計算扭動 (Rotate) 與 身體形變 (Skew)
+                const wiggleAngle = Math.sin(timeParam) * (isStruggling ? 0.45 : 0.12);
+                const skewAmount = Math.cos(timeParam) * (isStruggling ? 0.35 : 0.1);
+                const stretchY = isStruggling ? (1 + Math.sin(currentTime * 0.04) * 0.2) : 1;
+
+                ctx.rotate(wiggleAngle);
+                // 透過矩陣變換讓圖片產生身體擠壓與扭曲的質感
+                ctx.transform(1, 0, skewAmount, stretchY, 0, 0);
+
+                if (isStruggling) {
+                    ctx.filter = 'brightness(2.5) saturate(2)';
+                } else if (fish.type.glow) {
+                    ctx.shadowColor = fish.type.glow;
+                    ctx.shadowBlur = 20;
+                }
+
+                ctx.font = `${fish.type.size}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(fish.type.emoji, 0, 0);
+            }
+
+            ctx.restore();
+
+            // 繪製血條
+            if (fish.hp < fish.maxHp) {
+                const barWidth = Math.max(50, fish.type.size * 1.1);
+                const barHeight = 6;
+                const barX = fish.x - barWidth / 2;
+                const barY = fish.y - (fish.type.size * 0.6) - 12;
+
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                const hpPercent = Math.max(0, fish.hp / fish.maxHp);
+                ctx.fillStyle = hpPercent > 0.5 ? '#00ff00' : (hpPercent > 0.2 ? '#ffff00' : '#ff0000');
+                ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+            }
+
+            // 超出邊界清除
+            if (fish.x < -300 || fish.x > canvas.width + 300 || fish.y < -300 || fish.y > canvas.height + 300) {
+                fishes.splice(i, 1);
+            }
+        }
+
+        // 開火爆炸特效
+        for (let i = blasts.length - 1; i >= 0; i--) {
+            const b = blasts[i];
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 4;
+            ctx.globalAlpha = b.alpha;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            b.radius += 6;
+            b.alpha -= 0.06;
+            if (b.alpha <= 0) blasts.splice(i, 1);
+        }
+
+        // 浮動傷害/得分數字
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.y -= 1.5;
+            p.alpha -= 0.025;
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.font = p.isBig ? 'bold 36px Arial' : 'bold 22px Arial';
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 4;
+            ctx.fillText(p.text, p.x, p.y);
+            ctx.restore();
+
+            if (p.alpha <= 0) particles.splice(i, 1);
+        }
+
+        // 自訂武器準星
+        ctx.save();
+        ctx.translate(mouseX, mouseY);
+        ctx.beginPath();
+        ctx.arc(0, 0, 24, 0, Math.PI * 2);
+        ctx.strokeStyle = currentWeapon.color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fillStyle = currentWeapon.color;
+        ctx.fill();
+
+        ctx.font = '26px sans-serif';
+        ctx.fillText(currentWeapon.icon, 20, 20);
+        ctx.restore();
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(spawnFish, 550);
+    for(let i = 0; i < 7; i++) spawnFish();
+    gameLoop();
+</script>
+</body>
+</html>

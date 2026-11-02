@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣大富翁之學術地理與台灣美食探險 (V13 極致高對比清晰版)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: #fdfaf2;
+        }
+        /* 3D Board and Perspective Settings */
+        .board-container {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            width: 100%;
+            max-width: 860px;
+            aspect-ratio: 1;
+            margin: 0 auto;
+            background: #fbf7ee;
+            border: 8px solid #2d1e15;
+            box-shadow: 
+                0 30px 60px -15px rgba(45, 30, 21, 0.45),
+                0 15px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            padding: 4px;
+            perspective: 1500px;
+            transform-style: preserve-3d;
+        }
+        
+        /* 3D Property Block styling with uneven height and shadow - V13 Sharp High-Contrast edition */
+        .grid-cell {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 4px 3px;
+            font-size: 11.5px;
+            font-weight: 900;
+            overflow: hidden;
+            cursor: pointer;
+            background: #fffdfc;
+            border: 1.5px solid rgba(0,0,0,0.12); /* Higher contrast border */
+            margin: 1.5px;
+            border-radius: 10px;
+            user-select: none;
+            
+            /* Advanced anti-blurring CSS rules for pixel-perfect sharpness across Chrome/Safari/Edge */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            
+            /* Simulating 3D block using box-shadow depth offset instead of 3D translateZ! */
+            /* This bypasses hardware rasterization blurriness and keeps text 100% crisp! */
+            box-shadow: 
+                0 var(--depth, 4px) 0 0 var(--shadow-color, #bcae95),
+                0 calc(var(--depth, 4px) + 1px) 8px rgba(0, 0, 0, 0.18);
+            transition: all 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .grid-cell:hover {
+            /* Smooth 2D translation is hardware accelerated and avoids any text rendering regression */
+            transform: translateY(-5px) !important;
+            box-shadow: 
+                0 calc(var(--depth, 4px) + 5px) 0 0 #dd6b20,
+                0 calc(var(--depth, 4px) + 7px) 12px rgba(221, 107, 32, 0.32) !important;
+            z-index: 50;
+            border-color: #dd6b20;
+        }
+        
+        /* City header colored banners */
+        .city-banner {
+            height: 12px;
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Corners style */
+        .corner-cell {
+            font-size: 13px;
+            justify-content: center !important;
+            text-align: center;
+            border: 1.5px solid rgba(0,0,0,0.08) !important;
+        }
+        
+        /* Player token wrapper */
+        .players-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            position: absolute;
+            bottom: 5px;
+            width: 95%;
+            z-index: 20;
+        }
+        
+        /* 3D dynamic bouncing player badge */
+        .player-badge {
+            position: relative;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.22);
+            animation: bounce 0.5s ease infinite alternate;
+            transition: all 0.2s;
+            border: 2px solid white;
+        }
+        
+        .player-id-label {
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            color: #fff;
+            font-size: 9px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            border: 1.5px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* Shaking dice animations */
+        @keyframes shake {
+            0% { transform: translate(2px, 2px) rotate(0deg); }
+            10% { transform: translate(-1px, -3px) rotate(-2deg); }
+            20% { transform: translate(-3px, 0px) rotate(2deg); }
+            30% { transform: translate(0px, 3px) rotate(0deg); }
+            40% { transform: translate(2px, -1px) rotate(2deg); }
+            50% { transform: translate(-2px, 3px) rotate(-2deg); }
+            60% { transform: translate(-3px, 2px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-2deg); }
+            80% { transform: translate(-2px, -2px) rotate(2deg); }
+            90% { transform: translate(3px, 3px) rotate(0deg); }
+            100% { transform: translate(2px, -3px) rotate(-2deg); }
+        }
+        .shaking-animation {
+            animation: shake 0.12s infinite;
+        }
+        
+        /* Dice display */
+        .dice {
+            width: 72px;
+            height: 72px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f3ede2 100%);
+            border: 4px solid #4a3728;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 38px;
+            box-shadow: inset 0 -4px 10px rgba(0,0,0,0.1), 0 8px 16px rgba(74, 55, 40, 0.2);
+            font-weight: bold;
+            color: #3d2f21;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dice:hover {
+            transform: scale(1.08) rotate(5deg);
+        }
+        
+        /* Center section inside the board */
+        .center-area {
+            grid-column: 2 / 10;
+            grid-row: 2 / 10;
+            background-color: #fcf9f2;
+            background-image: radial-gradient(#ebdcb9 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-radius: 12px;
+            position: relative;
+        }
+        
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-7px); }
+        }
+        
+        /* Custom scrollbar for log data */
+        .log-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .log-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.02);
+        }
+        .log-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+        
+        /* Glowing effects for active draw buttons */
+        .glow-btn {
+            box-shadow: 0 0 20px rgba(246, 173, 85, 0.8);
+            animation: pulse-glow 1.5s infinite alternate;
+        }
+        @keyframes pulse-glow {
+            0% { transform: scale(1); box-shadow: 0 0 10px rgba(246, 173, 85, 0.5); }
+            100% { transform: scale(1.04); box-shadow: 0 0 25px rgba(246, 173, 85, 0.95); }
+        }
+
+        /* Roulette high-speed background flashing effects */
+        .roulette-bg-flash {
+            animation: bg-color-flash 0.15s infinite;
+        }
+        @keyframes bg-color-flash {
+            0% { background-color: #fffbeb; }
+            20% { background-color: #fef3c7; }
+            40% { background-color: #ffedd5; }
+            60% { background-color: #fee2e2; }
+            80% { background-color: #e0f2fe; }
+            100% { background-color: #e0f2fe; }
+        }
+
+        /* Bowling lane pin physics animation keyframes */
+        @keyframes roll-ball {
+            0% { transform: translate(-50%, 0) scale(1); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translate(-50%, -240px) scale(0.3); opacity: 0.9; }
+        }
+        .roll-animation {
+            animation: roll-ball 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+        @keyframes pin-scatter {
+            0% { transform: scale(1) translate(0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0.7) translate(var(--scatter-x, 20px), var(--scatter-y, -50px)) rotate(var(--scatter-r, 45deg)); opacity: 0.2; }
+        }
+        .pin-hit {
+            display: inline-block;
+            animation: pin-scatter 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        
+        /* Flash roulette animation */
+        @keyframes roulette-flash {
+            0% { background-color: rgba(246, 224, 94, 0.1); }
+            50% { background-color: rgba(237, 137, 54, 0.3); }
+            100% { background-color: rgba(246, 224, 94, 0.1); }
+        }
+        .roulette-bg-flash {
+            animation: roulette-flash 0.18s infinite;
+        }
+    
+        /* Styled Bowling Pin */
+        .bowling-pin-gfx {
+            width: 14px;
+            height: 38px;
+            background: radial-gradient(circle at 30% 35%, #ffffff 0%, #f0f0f0 60%, #d8d8d8 100%);
+            border-radius: 50% 50% 40% 40% / 40% 40% 60% 60%;
+            position: relative;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            border: 1px solid #ccc;
+            display: inline-block;
+        }
+        /* Top head sheen */
+        .bowling-pin-gfx::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #e0e0e0 100%);
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+        /* Red band across the neck */
+        .bowling-pin-neck-stripe {
+            position: absolute;
+            top: 9px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e53e3e;
+            box-shadow: 0 0 1px rgba(0,0,0,0.1);
+        }
+        .bowling-pin-neck-stripe-2 {
+            position: absolute;
+            top: 14px;
+            left: 1px;
+            right: 1px;
+            height: 2px;
+            background: #e53e3e;
+        }
+        /* Bowling ball rolling up the lane */
+        @keyframes rollUp {
+            0% { transform: translate(-50%, 0) scale(1) rotate(0deg); bottom: 16px; opacity: 1; }
+            100% { transform: translate(-50%, -240px) scale(0.4) rotate(360deg); bottom: 16px; opacity: 0.8; }
+        }
+        .roll-animation {
+            animation: rollUp 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+        }
+        /* Pin hit scatter animation */
+        @keyframes pinScatter {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--scatter-x, 50px), var(--scatter-y, -50px)) rotate(var(--scatter-r, 90deg)); opacity: 0; }
+        }
+        .pin-hit {
+            animation: pinScatter 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            pointer-events: none;
+        }
+        .roulette-bg-flash {
+            animation: bgFlash 0.15s infinite alternate;
+        }
+        @keyframes bgFlash {
+            0% { background-color: rgba(254, 240, 138, 0.2); }
+            100% { background-color: rgba(251, 146, 60, 0.2); }
+        }
+    
+    </style>
+</head>
+<body class="p-3 md:p-6">
+
+    <div class="max-w-5xl mx-auto flex flex-col gap-4 w-full">
+        
+        <!-- Top Horizontal Control Panel: Buttons only (No player list) -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-lg border-2 border-orange-200 flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+            <!-- Left Side: Styled Brand Tag -->
+            <div class="flex items-center gap-2">
+                <span class="bg-orange-500 text-white font-black text-xs px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-gamepad"></i> 遊戲控制台
+                </span>
+                <span class="text-xs font-black text-gray-500 tracking-wider">TAIWAN MONOPOLY v6</span>
+            </div>
+            
+            <!-- Right Side: Clean Game Controls -->
+            <div class="flex flex-wrap items-center gap-2 justify-end w-full sm:w-auto">
+                <!-- Add user button -->
+                <button onclick="addNewPlayer()" class="bg-green-600 hover:bg-green-700 text-white font-black text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1 shadow transition active:scale-95">
+                    <i class="fa-solid fa-user-plus text-[10px]"></i> 加人按鈕
+                </button>
+                
+                <!-- Exit specify player -->
+                <div class="flex items-center gap-1 bg-orange-50/60 border border-orange-100 px-2.5 py-1.5 rounded-xl shadow-inner">
+                    <span class="text-[11px] font-black text-orange-900 whitespace-nowrap"><i class="fa-solid fa-user-minus"></i> 指定退出：</span>
+                    <select id="retire-select" class="bg-white border border-orange-200 rounded-lg text-xs px-2 py-1 font-bold focus:outline-none focus:ring-1 focus:ring-orange-500 w-24">
+                        <!-- Options injected dynamically -->
+                    </select>
+                    <button onclick="triggerRetire()" class="bg-red-500 hover:bg-red-600 text-white font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow transition active:scale-95">
+                        確認退出
+                    </button>
+                </div>
+                
+                <!-- Reset Replay button -->
+                <button onclick="confirmReset()" class="bg-red-50 hover:bg-red-100 text-red-700 font-black text-xs px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1 transition active:scale-95 border border-red-200">
+                    <i class="fa-solid fa-rotate-left"></i> 重玩功能按鈕
+                </button>
+            </div>
+        </div>
+
+        <!-- Monopoly Board Section -->
+        <div class="w-full flex justify-center items-center">
+            
+            <div class="board-container" id="monopoly-board">
+                <!-- Outer Cells will be injected dynamically via JS -->
+                
+                <!-- Center Area -->
+                <div class="center-area">
+                    <!-- Title banner inside board -->
+                    <div class="text-center w-full mt-2">
+                        <div class="inline-block bg-orange-100 text-orange-800 text-[10px] font-black px-2.5 py-0.5 rounded-full mb-1 border border-orange-200 uppercase tracking-widest">
+                            Taiwan Map & Food Adventure
+                        </div>
+                        <h1 class="text-3xl md:text-4xl font-extrabold text-orange-800 tracking-wide select-none flex justify-center items-center gap-2 font-black">
+                            <span>🎲</span> 台灣大富翁 <span>🗺️</span>
+                        </h1>
+                        <p class="text-xs text-orange-600 font-extrabold select-none mt-1">3D多彩高度地圖 • 聯網多重檢索 • 台灣小吃趣味歷險</p>
+                    </div>
+                    
+                    <!-- Center Panels (Left & Right Split) - V10 layout -->
+                    <div class="grid grid-cols-2 gap-4 w-full flex-grow my-2 items-stretch">
+                        
+                        <!-- Center Left: Dice & Chance/Destiny stacked vertically with Decision Panel -->
+                        <div class="flex flex-col items-center justify-start gap-1.5 border-r-2 border-dashed border-orange-200 pr-4 py-1">
+                            
+                            <!-- Dice Area (Moved up slightly) -->
+                            <div class="flex flex-col items-center justify-center w-full">
+                                <span class="text-[11px] font-black text-gray-700 mb-1 flex items-center gap-1">🎲 點擊搖骰子</span>
+                                <div class="dice mb-1.5" id="game-dice" onclick="rollDice()">
+                                    ⚀
+                                </div>
+                                <button id="dice-btn" onclick="rollDice()" class="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs px-5 py-2 rounded-full shadow-md transition transform active:scale-95">
+                                    擲骰子
+                                </button>
+                                <span class="text-[9px] text-gray-500 font-bold mt-1.5" id="roll-status">等待擲骰子...</span>
+                            </div>
+                            
+                            <!-- Decision Overlay Panel (Shown after dice roll finishes) -->
+                            <div id="decision-panel" class="hidden w-full bg-orange-50 border border-orange-200 p-2 rounded-xl flex flex-col items-center gap-1.5 shadow-sm mt-1.5 z-20">
+                                <div class="text-[10px] font-black text-orange-950 text-center leading-tight" id="decision-title">要前進嗎？</div>
+                                <div class="flex gap-1.5 w-full">
+                                    <button onclick="confirmDecision(true)" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-black text-[9px] py-1.5 px-2 rounded-lg transition active:scale-95 shadow-sm">
+                                        確定前進
+                                    </button>
+                                    <button onclick="confirmDecision(false)" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-black text-[9px] py-1.5 px-2 rounded-lg transition active:scale-95 shadow-sm">
+                                        留在原地
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Chance/Destiny Area (Moved to bottom of Left Column) -->
+                            <div class="flex flex-col items-center justify-center w-full mt-1">
+                                <span class="text-[11px] font-black text-gray-700 mb-1 flex items-center gap-1">✨ 機會 / 命運</span>
+                                <button id="chance-destiny-btn" onclick="drawCard()" disabled class="bg-gray-400 text-white font-black text-[11px] px-3 py-2 rounded-xl shadow-md transition cursor-not-allowed w-full flex flex-col items-center justify-center gap-0.5">
+                                    <span class="text-sm">❓ / ❗️</span>
+                                    <span class="tracking-wide">抽取機會/命運</span>
+                                </button>
+                                <span class="text-[8px] text-orange-600 font-extrabold mt-1 text-center leading-tight" id="chance-status">走到「機會/命運」格即可點擊！</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Center Right: Live Local Scenic Landscape Window -->
+                        <div class="flex flex-col items-center justify-start pl-4 py-1 h-full w-full">
+                            <span class="text-[11px] font-black text-gray-700 mb-1.5 flex items-center gap-1">🖼️ 當地實時風景照</span>
+                            <div class="w-full flex-grow rounded-xl overflow-hidden bg-slate-100 border-2 border-orange-200/80 shadow-md relative group flex items-center justify-center min-h-[220px]">
+                                <img id="center-landscape-img" src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80" alt="風景照" class="w-full h-full object-cover absolute inset-0 transition duration-300">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent z-10 pointer-events-none"></div>
+                                <div class="absolute bottom-1.5 left-2 right-2 text-white z-20 text-[9px] font-extrabold select-none truncate" id="center-landscape-caption">
+                                    🏞️ 台灣美麗山水 (等待冒險)
+                                </div>
+                                <!-- Spinner Overlay -->
+                                <div id="landscape-loading-spinner" class="hidden absolute inset-0 bg-slate-900/60 z-30 flex items-center justify-center text-white text-[10px] font-bold">
+                                    <i class="fa-solid fa-spinner animate-spin mr-1"></i> 尋找風景照中...
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Center Bottom Status bar -->
+                    <div class="w-full bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-200 rounded-xl p-2.5 flex justify-between items-center text-xs shadow-sm">
+                        <div class="flex items-center gap-1">
+                            <span class="font-black text-orange-950">當前輪到：</span>
+                            <span id="active-player-indicator" class="font-extrabold text-orange-900 bg-white px-3 py-1 rounded-lg shadow-sm border border-orange-200">
+                                載入中...
+                            </span>
+                        </div>
+                        <div>
+                            <span class="font-black text-orange-950 bg-amber-200/60 px-3 py-1 rounded-lg border border-amber-300" id="current-round-info">第 1 回合</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Persisted Message Explorer Section (Survives Refresh, Close, Replay) -->
+        <div class="bg-white p-5 rounded-2xl shadow-lg border-2 border-orange-200 flex flex-col gap-3 w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-orange-100 pb-2.5 gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📚</span>
+                    <div>
+                        <h3 class="text-sm font-black text-orange-950">台灣歷史、地理與人文知識存摺 (已呈現過的訊息)</h3>
+                        <p class="text-[10px] text-orange-600 font-bold mt-0.5">※ 當重玩、重新整理或關閉網頁時，本存摺「絕對不會被清除」，最多累計 100 筆並自動輪替！</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-end sm:self-auto">
+                    <span id="messages-count" class="text-xs font-black bg-orange-100 text-orange-800 px-3 py-1 rounded-full border border-orange-200">0 / 100</span>
+                    <button onclick="clearSavedMessages()" class="text-[10px] text-red-600 hover:text-red-700 font-extrabold border border-red-200 hover:bg-red-50 px-2.5 py-1.5 rounded-xl transition active:scale-95 shadow-sm">
+                        <i class="fa-solid fa-trash-can"></i> 清除存摺
+                    </button>
+                </div>
+            </div>
+            
+            <div id="persisted-messages-container" class="max-h-80 overflow-y-auto log-scrollbar pr-1 flex flex-col gap-2.5 text-xs">
+                <!-- Stored messages will be rendered here dynamically -->
+                <p class="text-gray-400 font-bold text-center py-6">尚未探索到各縣市的奧秘。踩中各縣市解鎖有趣的地理、歷史或笑話，即可累積至本存摺喔！</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Wikipedia County Info Modal -->
+    <div id="wiki-modal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="bg-white rounded-3xl shadow-2xl z-10 max-w-lg w-11/12 overflow-hidden border-4 border-orange-400 transform scale-95 transition-transform duration-300 flex flex-col max-h-[85vh]">
+            <!-- Header category tag -->
+            <div class="bg-gradient-to-r from-orange-400 to-amber-500 px-6 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl" id="wiki-category-emoji">🌿</span>
+                    <div>
+                        <span class="text-[10px] font-bold tracking-widest uppercase block text-orange-100" id="wiki-category-name">自然奧秘</span>
+                        <h4 class="text-xl font-black leading-tight" id="wiki-city-name">台北市</h4>
+                    </div>
+                </div>
+                <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-extrabold tracking-wider" id="wiki-theme-tag">地理探索</span>
+            </div>
+            
+            <!-- Image & content body -->
+            <div class="p-5 overflow-y-auto log-scrollbar flex-grow flex flex-col gap-3.5">
+                <!-- TTS Audio Player Controls (Web Speech API) -->
+                <div class="flex items-center justify-between bg-orange-100/60 p-3 rounded-2xl border border-orange-200 shadow-sm">
+                    <div class="flex items-center gap-2 text-[11px] font-black text-orange-950">
+                        <span class="relative flex h-2.5 w-2.5" id="tts-active-ping">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                        </span>
+                        <span>🎙️ 語音導覽：</span>
+                        <span id="tts-status-text" class="text-orange-850 font-extrabold">正在自動朗讀中...</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="pauseSpeech()" title="暫停" class="bg-white hover:bg-orange-50 text-orange-800 border border-orange-200 rounded-lg p-1.5 text-xs transition active:scale-90">
+                            <i class="fa-solid fa-pause"></i>
+                        </button>
+                        <button onclick="resumeSpeech()" title="繼續" class="bg-white hover:bg-orange-50 text-orange-800 border border-orange-200 rounded-lg p-1.5 text-xs transition active:scale-90">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button onclick="replaySpeech()" title="重聽" class="bg-white hover:bg-orange-50 text-orange-800 border border-orange-200 rounded-lg p-1.5 text-xs transition active:scale-90">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <button onclick="stopSpeech()" title="靜音" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg p-1.5 text-xs transition active:scale-90">
+                            <i class="fa-solid fa-volume-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full h-44 rounded-2xl overflow-hidden bg-gray-100 shadow-inner flex items-center justify-center relative group" id="wiki-image-container">
+                    <img id="wiki-image" src="" alt="縣市圖片" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                    <div class="absolute bottom-2 right-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded-full font-bold tracking-wider">即時連線網路資料</div>
+                </div>
+                
+                <div>
+                    <h5 class="text-sm font-extrabold text-orange-950 mb-1" id="wiki-title">台北市歷史</h5>
+                    <p class="text-xs text-gray-650 leading-relaxed text-justify font-bold" id="wiki-content">
+                        載入中...
+                    </p>
+                </div>
+                
+                <!-- Children education trivia card -->
+                <div class="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 rounded-2xl p-3.5 text-xs font-bold text-orange-900 flex flex-col gap-1.5 shadow-sm">
+                    <div class="flex items-center gap-1.5 text-[13px] text-orange-850 font-black">
+                        <span>💡</span>
+                        <span>小學堂動動腦！</span>
+                    </div>
+                    <p id="wiki-trivia-text" class="text-orange-900/90 leading-relaxed">你知道嗎？看完有趣的新聞與歷史，按下【繼續遊戲】繼續前進吧！</p>
+                </div>
+            </div>
+            
+            <!-- Footer controls -->
+            <div class="bg-orange-50/50 px-6 py-4 border-t border-orange-100 flex justify-end">
+                <button onclick="closeWikiModal()" class="bg-orange-600 hover:bg-orange-700 text-white font-black text-xs px-6 py-3 rounded-full shadow-md transition transform active:scale-95">
+                    看完資料，繼續遊戲！ ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chance/Destiny Draw Modal -->
+    <div id="card-modal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+        <div class="bg-white rounded-3xl shadow-2xl z-10 max-w-sm w-5/6 overflow-hidden border-4 transform scale-95 transition-transform duration-300 flex flex-col" id="card-modal-border">
+            <!-- Header -->
+            <div class="px-6 py-4 text-white text-center font-black text-xl" id="card-modal-header">
+                機會 / 命運
+            </div>
+            <!-- Card Body with flipping feel -->
+            <div class="p-6 text-center flex flex-col items-center justify-center gap-4 min-h-[220px]" id="card-modal-body">
+                <div class="text-5xl" id="card-emoji">❓</div>
+                <div class="text-xs font-black tracking-wider px-2.5 py-0.5 rounded-full" id="card-type-badge">機會</div>
+                <div class="text-sm font-black text-gray-800 leading-relaxed" id="card-text">
+                    抽卡中，請稍候...
+                </div>
+                <div class="text-xs text-orange-600 font-bold" id="card-effect-hint"></div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-100 flex justify-center bg-gray-50">
+                <button id="card-modal-confirm-btn" onclick="applyCardAndClose()" class="bg-gray-800 hover:bg-gray-900 text-white font-black text-xs px-8 py-3 rounded-full shadow transition transform active:scale-95">
+                    確定並前進 ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    
+    <!-- Bowling Tournament Modal -->
+    <div id="bowling-modal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="bg-gradient-to-b from-blue-50 to-indigo-100 rounded-3xl shadow-2xl z-10 max-w-xl w-11/12 overflow-hidden border-4 border-blue-500 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white text-center font-black text-xl flex flex-col items-center gap-1 shadow-md">
+                <span class="text-3xl animate-bounce">🎳</span>
+                <h4 class="text-lg tracking-wider font-extrabold">滾石保齡球大對決！</h4>
+                <p class="text-[10px] text-blue-100 font-bold">撞格大對決！最高分者可再前進一格！</p>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-5 flex-grow overflow-y-auto log-scrollbar flex flex-col gap-4 text-center" id="bowling-modal-body">
+                <!-- Competitors status -->
+                <div class="bg-white p-3.5 rounded-2xl border border-blue-200 shadow-sm flex flex-col gap-2">
+                    <span class="text-xs font-black text-blue-900 flex justify-center items-center gap-1">👥 參賽名單與成績</span>
+                    <div id="bowling-competitors-list" class="grid grid-cols-2 gap-2.5">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Active Turn Display -->
+                <div class="bg-blue-600/10 border border-blue-200 rounded-2xl p-4 flex flex-col items-center justify-center gap-2">
+                    <div class="text-xs font-black text-blue-900" id="bowling-turn-title">準備對決...</div>
+                    <div class="text-4xl animate-pulse" id="bowling-active-avatar">🐱</div>
+                    <div class="text-sm font-black text-gray-800" id="bowling-active-name">玩家 1</div>
+                </div>
+                
+                <!-- Bowling Lane & Pins Visual -->
+                <div class="bg-slate-900 rounded-2xl p-4 h-80 shrink-0 relative overflow-hidden flex flex-col justify-between items-center shadow-inner border border-slate-700">
+                    <!-- Bowling Lane Wooden background effect -->
+                    <div class="absolute inset-0 bg-gradient-to-b from-amber-900/10 via-amber-700/20 to-amber-950/40 pointer-events-none"></div>
+                    <!-- Lane boundaries -->
+                    <div class="absolute left-1/4 right-1/4 top-0 bottom-0 border-l border-r border-amber-500/20 pointer-events-none"></div>
+                    
+                    <!-- Pins Area (Top) -->
+                    <div class="flex flex-col items-center gap-1 z-10 w-full pt-1" id="bowling-pins-grid">
+                        <!-- 10 Bowling pins represented by Emojis, colored/highlighted -->
+                    </div>
+                    
+                    <!-- Bowling Ball rolling trace -->
+                    <div id="bowling-ball-visual" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-2xl z-20 pointer-events-none opacity-0">
+                        🔴
+                    </div>
+                    
+                    <!-- Power Slider Bar -->
+                    <div class="w-full bg-slate-800 rounded-full h-3 border border-slate-700 overflow-hidden relative z-10">
+                        <div id="bowling-power-indicator" class="bg-gradient-to-r from-red-500 via-green-500 to-red-500 h-full w-[25%]" style="margin-left: 0%;"></div>
+                        <!-- Target sweet spot marker -->
+                        <div class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-3 bg-white border border-slate-950 opacity-90 animate-pulse"></div>
+                    </div>
+                    <span class="text-[9px] text-slate-400 font-bold z-10">※ 游標快速移動，指針停留在中央白色「⭐ 全倒區域」就能擊出 Strike！</span>
+                </div>
+                
+                <!-- Action Button -->
+                <button id="bowling-throw-btn" onclick="fireBowlingBall()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black text-sm py-3.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center justify-center gap-1.5">
+                    <span class="text-base">🎳</span>
+                    <span id="bowling-btn-text">發射保齡球！</span>
+                </button>
+            </div>
+            
+            <!-- Footer -->
+            <div id="bowling-footer" class="bg-blue-50 px-6 py-4 border-t border-blue-200 flex justify-end hidden">
+                <button onclick="closeBowlingModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-6 py-3 rounded-full shadow-md transition transform active:scale-95">
+                    確定並發放獎勵！ ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="winner-modal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="bg-yellow-50 rounded-3xl shadow-2xl z-10 max-w-md w-11/12 overflow-hidden border-8 border-yellow-400 transform scale-95 transition-transform duration-300 p-8 text-center flex flex-col items-center gap-4">
+            <div class="text-6xl animate-bounce">🏆</div>
+            <h4 class="text-3xl font-black text-yellow-900">恭喜贏家！</h4>
+            <div class="text-5xl my-2" id="winner-avatar">🐱</div>
+            <p class="text-lg font-black text-gray-800" id="winner-announcement">
+                玩家 1 率先回到了終點，成為本次探險之王！
+            </p>
+            <p class="text-xs text-orange-600 font-bold">完成了台灣之旅，吸收了滿滿的在地知識！</p>
+            <button onclick="resetGame()" class="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white font-black px-8 py-3 rounded-full shadow-lg transform active:scale-95 transition">
+                再玩一次！
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        // Board layout configurations with Emojis and Lands
+        const boardSpaces = [
+            { id: 0, name: "起點", type: "START", color: "#f56565", text: "出發冒險！", emoji: "🚩" },
+            { id: 1, name: "台北市", type: "CITY", color: "#4299e1", price: "4000", emoji: "🏙️" },
+            { id: 2, name: "命運", type: "DESTINY", color: "#ed8936", text: "命運！", emoji: "❗️" },
+            { id: 3, name: "陽明山", type: "CITY", color: "#48bb78", price: "1400", emoji: "🌋" },
+            { id: 4, name: "台北火車站", type: "STATION", color: "#718096", price: "2000", emoji: "🚉" },
+            { id: 5, name: "桃園縣", type: "CITY", color: "#4299e1", price: "3200", emoji: "✈️" },
+            { id: 6, name: "機會", type: "CHANCE", color: "#ecc94b", text: "機會？", emoji: "❓" },
+            { id: 7, name: "新竹縣", type: "CITY", color: "#4299e1", price: "3000", emoji: "🍵" },
+            { id: 8, name: "北埔", type: "CITY", color: "#48bb78", price: "2200", emoji: "🏞️" },
+            { id: 9, name: "桃園機場", type: "AIRPORT", color: "#319795", text: "再擲一次", emoji: "🛫" },
+            { id: 10, name: "苗栗縣", type: "CITY", color: "#ecc94b", price: "3000", emoji: "🍓" },
+            { id: 11, name: "南投縣", type: "CITY", color: "#ecc94b", price: "1000", emoji: "🏔️" },
+            { id: 12, name: "日月潭", type: "CITY", color: "#48bb78", price: "600", emoji: "⛵" },
+            { id: 13, name: "台中火車站", type: "STATION", color: "#718096", price: "2000", emoji: "🚉" },
+            { id: 14, name: "彰化縣", type: "CITY", color: "#ecc94b", price: "1000", emoji: "🛕" },
+            { id: 15, name: "命運", type: "DESTINY", color: "#ed8936", text: "命運！", emoji: "❗️" },
+            { id: 16, name: "雲林縣", type: "CITY", color: "#ecc94b", price: "1200", emoji: "☕" },
+            { id: 17, name: "嘉義市", type: "CITY", color: "#ecc94b", price: "1800", emoji: "🍗" },
+            { id: 18, name: "阿里山火車", type: "TRAIN", color: "#9f7aea", text: "再擲一次", emoji: "🚂" },
+            { id: 19, name: "台南市", type: "CITY", color: "#f56565", price: "2000", emoji: "🏯" },
+            { id: 20, name: "機會", type: "CHANCE", color: "#ecc94b", text: "機會？", emoji: "❓" },
+            { id: 21, name: "高雄市", type: "CITY", color: "#f56565", price: "4000", emoji: "⚓" },
+            { id: 22, name: "屏東市", type: "CITY", color: "#f56565", price: "2000", emoji: "🍍" },
+            { id: 23, name: "高雄火車站", type: "STATION", color: "#718096", price: "2000", emoji: "🚉" },
+            { id: 24, name: "墾丁", type: "CITY", color: "#48bb78", price: "1600", emoji: "🏖️" },
+            { id: 25, name: "宜蘭市", type: "CITY", color: "#9f7aea", price: "2800", emoji: "🧅" },
+            { id: 26, name: "花蓮市", type: "CITY", color: "#9f7aea", price: "2600", emoji: "⛰️" },
+            { id: 27, name: "商店", type: "SHOP", color: "#4a5568", text: "暫停一回", emoji: "🏪" },
+            { id: 28, name: "合歡山", type: "CITY", color: "#48bb78", price: "2600", emoji: "❄️" },
+            { id: 29, name: "台東縣", type: "CITY", color: "#48bb78", price: "2600", emoji: "🎈" },
+            { id: 30, name: "命運", type: "DESTINY", color: "#ed8936", text: "命運！", emoji: "❗️" },
+            { id: 31, name: "知本", type: "CITY", color: "#48bb78", price: "2200", emoji: "♨️" },
+            { id: 32, name: "台東火車站", type: "STATION", color: "#718096", price: "2000", emoji: "🚉" },
+            { id: 33, name: "機會", type: "CHANCE", color: "#ecc94b", text: "機會？", emoji: "❓" },
+            { id: 34, name: "金門縣", type: "CITY", color: "#f56565", price: "2000", emoji: "🦁" },
+            { id: 35, name: "澎湖縣", type: "CITY", color: "#f56565", price: "1400", emoji: "🌊" }
+        ];
+
+        // Web Audio Synthesizer for Retro 8-bit sound effects (Fully offline!)
+        const synth = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playTick() { // Mechanical clock roulette blip
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(850, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.04);
+                    gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.04);
+                } catch(e) { console.warn(e); }
+            },
+            playDice() { // Wooden rattle/tumbling rolling sounds
+                try {
+                    this.init();
+                    let now = this.ctx.currentTime;
+                    for (let i = 0; i < 7; i++) {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(140 + Math.random() * 140, now + i * 0.05);
+                        gain.gain.setValueAtTime(0.12, now + i * 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.04);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + i * 0.05);
+                        osc.stop(now + i * 0.05 + 0.04);
+                    }
+                } catch(e) { console.warn(e); }
+            },
+            playEat() { // "Munch Munch Munch Gulp" synth sequence
+                try {
+                    this.init();
+                    let now = this.ctx.currentTime;
+                    this.chirp(280, 580, 0.06, now, 'triangle');
+                    this.chirp(220, 680, 0.06, now + 0.12, 'triangle');
+                    this.chirp(300, 720, 0.07, now + 0.24, 'triangle');
+                    // Gulp!
+                    this.chirp(90, 1100, 0.13, now + 0.35, 'sine');
+                } catch(e) { console.warn(e); }
+            },
+            chirp(startFreq, endFreq, duration, startTime, type = 'triangle') {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(startFreq, startTime);
+                osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+                gain.gain.setValueAtTime(0.1, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+            },
+            playStinky() { // Funny slide-down bubble farty synthesizer sound
+                try {
+                    this.init();
+                    let now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(35, now + 0.38);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.38);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(now + 0.38);
+                } catch(e) { console.warn(e); }
+            },
+            playVictory() { // Sparkly retro arcade fanfare
+                try {
+                    this.init();
+                    let now = this.ctx.currentTime;
+                    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
+                    notes.forEach((freq, idx) => {
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gain.gain.setValueAtTime(0.06, now + idx * 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.2);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now + idx * 0.1);
+                        osc.stop(now + idx * 0.1 + 0.2);
+                    });
+                } catch(e) { console.warn(e); }
+            }
+        };
+
+        // Emojis and Colors setup
+        const emojiPool = ["🐱", "🐶", "🐰", "🦊", "🐻", "🐼", "🦁", "🐯", "🐨", "🐸", "🐷", "🐵", "🐔", "🐧", "🦆", "🦉", "🦄", "🐹", "🐙", "🐢", "🐳"];
+        const playerColors = [
+            { bg: "#FEEBC8", border: "#DD6B20" }, // Orange-ish
+            { bg: "#BEE3F8", border: "#3182CE" }, // Blue
+            { bg: "#C6F6D5", border: "#38A169" }, // Green
+            { bg: "#FED7D7", border: "#E53E3E" }, // Red
+            { bg: "#E9D8FD", border: "#805AD5" }, // Purple
+            { bg: "#E0F7FA", border: "#00ACC1" }, // Cyan
+            { bg: "#E8F5E9", border: "#43A047" }, // Deep green
+            { bg: "#FFF3E0", border: "#FB8C00" }, // Deep Orange
+            { bg: "#F3E5F5", border: "#8E24AA" }  // Dark Violet
+        ];
+
+        const defaultFacts = {
+            "台北市": "台北市有著名的台北101大樓，是世界知名的地標！這裡還有台北市立動物園，裡面可以看到可愛的大貓熊和無尾熊喔！",
+            "陽明山": "陽明山是個活火山區！這裡有壯觀的小油坑噴氣孔，還有春天開滿整座山的杜鵑花與夢幻的竹子湖海芋！",
+            "桃園縣": "桃園市被稱為「千塘之鄉」，因為這裡有許多灌溉埤塘！桃園國際機場也是我們迎接世界各國朋友的重要大門喔！",
+            "新竹縣": "新竹縣的北埔老街非常有歷史！這裡盛產香氣特殊的東方美人茶，還有古早美味的客家擂茶與柿餅！",
+            "北埔": "北埔老街保留了金廣福公館、天水堂等珍貴古蹟，這裡的客家文化極具特色，客家擂茶更是小朋友最愛動手體驗的活動！",
+            "苗栗縣": "苗栗縣是台灣的「草莓故鄉」！每年冬末，大湖的草莓園就會結滿紅通通的草莓，香甜可口。這裡還有著名的客家鐵道與三義木雕！",
+            "南投縣": "南投縣是全台灣唯一沒有臨海的縣市！這裡有風光明媚的「日月潭」，還有高聳入雲、雄偉的玉山國家公園！",
+            "日月潭": "日月潭水波粼粼，北半湖形狀如圓日，南半湖形似彎月，是以得名。這裡的邵族文化與阿婆香菇茶葉蛋也非常有名！",
+            "彰化縣": "彰化八卦山的大佛非常高大莊嚴，是當地的地標！彰化還有極具特色的「扇形車庫」，就像火車們的扇形旅館，非常酷炫！",
+            "雲林縣": "雲林縣是台灣重要的蔬菜之鄉！這裡有著名的西螺大橋，也有好喝的古坑咖啡與北港朝天宮的傳統民俗文化！",
+            "嘉義市": "嘉義市是著名的「火雞肉飯」故鄉！這裡也是阿里山森林鐵路的起點。每年的國際管樂節都讓整座城市充滿音樂活力！",
+            "台南市": "台南市是台灣最早開發的古老都市！這裡有安平古堡、赤崁樓與億載金城，還有數不完的傳統台南擔仔麵與棺材板美食！",
+            "高雄市": "高雄市是台灣著名的海港之都！美麗的愛河貫穿市區，駁二藝術特區由舊倉庫改造成文創基地，還有美麗的港灣高空景觀！",
+            "屏東市": "屏東市位於熱帶氣候區。屏東縣有美麗無比的墾丁國家公園，擁有湛藍海洋、雪白沙灘以及獨特的珊瑚礁自然生態！",
+            "墾丁": "墾丁是熱帶海洋天堂！這裡有台灣最南端的鵝鑾鼻燈塔，還有豐富的潮間帶海洋生物與成群的陸蟹在森林與沙灘上活動！",
+            "宜蘭市": "宜蘭市擁有純淨的水源，生產出名聞遐邇的三星蔥！礁溪溫溫泉是珍貴的平地溫泉，泡起來皮膚滑溜溜的，又叫美人湯喔！",
+            "花蓮市": "花蓮市有世界級的大理石峽谷景觀「太魯閣國家公園」！立霧溪百萬年來的切割，造就出氣勢磅礴的峽谷，讓人驚嘆不已！",
+            "合歡山": "合歡山是台灣賞雪勝地！冬天只要水氣與冷空氣足夠，整座合歡山就會化身為一片銀白色的童話雪國世界，美不勝收！",
+            "台東縣": "台東縣是自然無污染的淨土，每年夏天的鹿野高台「熱氣球嘉年華」，天空中飄滿了造型可愛的熱氣球，五彩繽紛非常夢幻！",
+            "知本": "知本溫泉區是東部最知名的溫泉鄉！知本溪流清澈，溫泉水質優良。附近還有知本國家森林遊樂區，充滿芬多精！",
+            "金門縣": "金門縣有著著名的洋樓與閩南大厝！這裡的馬路上矗立著高大的「風獅爺」，是用來鎮風辟邪、保佑村民的可愛守護神！",
+            "澎湖縣": "澎湖縣是由無數個火山玄武岩島嶼組成的海洋樂園！這裡有歷史悠久的「雙心石滬」，是漁民利用潮汐捕魚的超級智慧！",
+            "台北火車站": "台北車站是台灣最重要的交通交會點！這裡像迷宮一樣巨大，底下通往高鐵、台鐵、以及多條捷運線，每天有幾十萬人經過！",
+            "台中火車站": "台中車站新站非常高大通風。舊車站則是典雅的巴洛克式百年紅磚古建築。兩代車站相鄰，記錄著台灣鐵路的百年歷史！",
+            "高雄火車站": "高雄車站地下的高鐵與火車大廳上方，有著一片像一朵朵白雲般、非常前衛美妙的白雲天花板，深受國內外遊客的讚美！",
+            "台東火車站": "台東車站是一座被群山環抱、可以看見美麗海岸山脈的綠色車站。來到這，海風徐徐吹過，讓人立刻感受到台東的慢活！"
+        };
+
+        const jokesAndRiddles = [
+            { q: "什麼車子最長？", a: "是『塞車』！因為塞車的時候車子連綿好幾公里，一望無際喔！" },
+            { q: "小貓咪為什麼不喜歡和橡皮擦玩遊戲？", a: "因為貓咪害怕自己一碰，就變成『擦（插）畫家』啦！" },
+            { q: "哪一個縣市最會做麵包？", a: "答案是台南市！因為台南人都喜歡吃甜食，台語的麵包讀音聽起來像『胖』，台南最甜所以最會做『胖』！" },
+            { q: "小明去海邊玩，對著大海大喊：『我是大帥哥！』，結果他立刻被海水淋濕了，為什麼？", a: "因為大海會『無情地打臉（起浪）』！" },
+            { q: "紅豆生南國，那綠豆生在哪裡？", a: "答案是『生在鍋子裡』，因為媽媽最喜歡煮好喝的綠豆湯了！" }
+        ];
+
+        // Curated high-quality scenic keywords for each city to guarantee travel landscapes and prevent administrative/political graphics
+        const scenicKeywords = {
+            "台北市": ["taipei-101", "taipei-city", "taipei-skyline", "yangmingshan-national-park", "taipei-night"],
+            "陽明山": ["yangmingshan", "yangmingshan-national-park", "yangmingshan-sulfur", "yangmingshan-scenic"],
+            "台北火車站": ["taipei-main-station", "taiwan-train", "taiwan-railway", "taipei-railway"],
+            "桃園縣": ["taoyuan-taiwan", "taoyuan-city", "taoyuan-nature", "taoyuan-scenic"],
+            "新竹縣": ["hsinchu-taiwan", "hsinchu-scenic", "hsinchu-tea", "hsinchu-hills"],
+            "北埔": ["beipu-old-street", "beipu-taiwan", "beipu-tea", "beipu-scenic"],
+            "桃園機場": ["taoyuan-airport", "taiwan-airport", "aircraft-landing", "airplane-flight"],
+            "苗栗縣": ["miaoli-taiwan", "miaoli-hills", "miaoli-nature", "miaoli-scenic"],
+            "南投縣": ["nantou-taiwan", "sun-moon-lake", "nantou-mountain", "nantou-nature"],
+            "日月潭": ["sun-moon-lake", "sun-moon-lake-taiwan", "sun-moon-lake-boat", "sun-moon-lake-scenic"],
+            "台中火車站": ["taichung-station", "taichung-railway", "taiwan-train", "taichung-city"],
+            "彰化縣": ["changhua-taiwan", "changhua-buddha", "changhua-temple", "changhua-scenic"],
+            "雲林縣": ["yunlin-taiwan", "yunlin-scenic", "yunlin-countryside", "yunlin-nature"],
+            "嘉義市": ["chiayi-taiwan", "chiayi-scenic", "chiayi-city", "chiayi-mountain"],
+            "阿里山火車": ["alishan-train", "alishan-forest", "alishan-railway", "alishan-sunrise"],
+            "台南市": ["tainan-temple", "tainan-fort", "tainan-historic", "tainan-scenic"],
+            "高雄市": ["kaohsiung-harbor", "kaohsiung-pagoda", "kaohsiung-river", "kaohsiung-scenic"],
+            "屏東市": ["pingtung-taiwan", "pingtung-nature", "pingtung-scenic", "kenting-nature"],
+            "高雄火車站": ["kaohsiung-station", "kaohsiung-railway", "kaohsiung-train"],
+            "墾丁": ["kenting-beach", "kenting-ocean", "kenting-lighthouse", "kenting-nature"],
+            "宜蘭市": ["yilan-taiwan", "yilan-nature", "yilan-scenic", "yilan-green"],
+            "花蓮市": ["taroko-gorge", "hualien-taiwan", "hualien-ocean", "hualien-cliffs"],
+            "商店": ["taiwan-street", "taiwan-shop", "taiwan-store", "taiwan-market"],
+            "合歡山": ["hehuan-mountain", "hehuan-snow", "hehuan-scenic", "hehuan-clouds"],
+            "台東縣": ["taitung-taiwan", "taitung-ocean", "taitung-balloon", "taitung-scenic"],
+            "知本": ["zhiben-hot-spring", "hot-spring-taiwan", "zhiben-nature"],
+            "台東火車站": ["taitung-station", "taitung-railway", "taitung-train"],
+            "金門縣": ["kinmen-taiwan", "kinmen-village", "kinmen-scenic"],
+            "澎湖縣": ["penghu-beach", "penghu-island", "penghu-sea", "penghu-basalt"]
+        };
+
+        const countyThemes = {
+            "自然奧秘": ["生態", "自然", "動物", "特有種", "國家公園"],
+            "歷史足跡": ["歷史", "古蹟", "傳統", "老街"],
+            "地理探索": ["地理", "河流", "山脈", "地標"],
+            "文化藝術": ["文化", "藝術", "音樂", "節慶", "童謠"],
+            "趣聞探險": ["產業", "景點", "故事", "特產"],
+            "益智猜謎": ["笑話", "謎語"]
+        };
+
+        // Game State
+        let players = [];
+        let maxPlayerId = 0;
+        let currentPlayerIndex = 0;
+        let isRolling = false;
+        let activeCardType = null;
+        let roundCount = 1;
+        
+        // V10 New State: Decision and Scenic Landscape caches
+        let pendingMovePlayer = null;
+        let pendingMoveScore = 0;
+        const spaceImageCache = {}; // cityName -> Array of image URLs
+        const spaceImageIndex = {}; // cityName -> current index to pull
+        const shownImagesGlobal = new Set(); // Global shown images to prevent duplicates
+
+        // Position Mapping in CSS Grid (10x10)
+        // Position Mapping: Clockwise starting from Top-Left corner (id = 0)
+        function getGridCoordinates(id) {
+            if (id >= 0 && id <= 9) {
+                // Top row: left to right
+                return { r: 1, c: id + 1 };
+            } else if (id >= 10 && id <= 18) {
+                // Right column: top to bottom
+                return { r: (id - 9) + 1, c: 10 };
+            } else if (id >= 19 && id <= 27) {
+                // Bottom row: right to left
+                return { r: 10, c: 10 - (id - 18) };
+            } else {
+                // Left column: bottom to top
+                return { r: 10 - (id - 27), c: 1 };
+            }
+        }
+
+        // Initialize Board elements with 3D colorful styles and uneven heights
+        function renderBoardFramework() {
+            const board = document.getElementById("monopoly-board");
+            
+            // Preserve the central functional area (dice, buttons, status) and clear only cells
+            const centerArea = board.querySelector(".center-area");
+            board.innerHTML = "";
+            if (centerArea) {
+                board.appendChild(centerArea);
+            }
+            
+            boardSpaces.forEach((space) => {
+                const cell = document.createElement("div");
+                cell.className = "grid-cell";
+                cell.id = `space-${space.id}`;
+                
+                // --- 1. Compute dynamic 3D heights (uneven depth) ---
+                // Staggered heights range from 4px to 10px based on deterministic ID logic
+                const baseDepth = (space.id % 4) * 2 + 4; 
+                cell.style.setProperty('--depth', `${baseDepth}px`);
+                
+                // Map color shadows to look like solid colored 3D wooden blocks
+                let shadowColor = '#d3c4a9';
+                if (space.color) {
+                    shadowColor = space.color + 'aa'; // Semi-transparent side depth
+                }
+                cell.style.setProperty('--shadow-color', shadowColor);
+                
+                // Position using CSS Grid
+                const coords = getGridCoordinates(space.id);
+                cell.style.gridRow = coords.r;
+                cell.style.gridColumn = coords.c;
+                
+                // Apply styling based on type
+                if (space.type === "START" || space.type === "AIRPORT" || space.type === "TRAIN" || space.type === "SHOP") {
+                    cell.classList.add("corner-cell");
+                    
+                    let bgGrad = "linear-gradient(135deg, #fffcf3 0%, #faeccf 100%)";
+                    if (space.type === "START") bgGrad = "linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%)";
+                    else if (space.type === "AIRPORT") bgGrad = "linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%)";
+                    else if (space.type === "TRAIN") bgGrad = "linear-gradient(135deg, #faf5ff 0%, #e9d8fd 100%)";
+                    else if (space.type === "SHOP") bgGrad = "linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%)";
+                    
+                    cell.style.background = bgGrad;
+                    
+                    cell.innerHTML = `
+                        <div class="flex flex-col items-center justify-between h-full py-1.5 w-full relative">
+                            <span class="text-xl filter drop-shadow-sm transform hover:scale-110 transition duration-150">${space.emoji}</span>
+                            <span class="font-black text-neutral-900 text-[12px] md:text-[13px] tracking-wide leading-tight text-center" style="text-shadow: 0 0 1px rgba(255,255,255,0.6);">${space.name}</span>
+                            <span class="text-[9px] bg-white/90 text-neutral-800 border border-neutral-300 px-1.5 py-0.5 rounded font-black tracking-tighter whitespace-nowrap">${space.text || ""}</span>
+                            <div id="players-cell-${space.id}" class="players-container"></div>
+                        </div>
+                    `;
+                } else if (space.type === "CHANCE" || space.type === "DESTINY") {
+                    cell.classList.add("corner-cell");
+                    const isChance = space.type === "CHANCE";
+                    const bgGrad = isChance 
+                        ? "linear-gradient(135deg, #fffdf0 0%, #fef08a 100%)" 
+                        : "linear-gradient(135deg, #fffcf5 0%, #ffedd5 100%)";
+                    cell.style.background = bgGrad;
+                    
+                    cell.innerHTML = `
+                        <div class="flex flex-col items-center justify-between h-full py-1.5 w-full">
+                            <span class="text-2xl font-black ${isChance ? 'text-amber-500' : 'text-orange-500'} animate-pulse">${space.emoji}</span>
+                            <span class="font-black text-neutral-900 text-[13px]">${space.name}</span>
+                            <span class="text-[9px] bg-white text-neutral-800 px-1.5 py-0.5 rounded border border-neutral-300 font-extrabold">${space.text}</span>
+                            <div id="players-cell-${space.id}" class="players-container"></div>
+                        </div>
+                    `;
+                } else {
+                    const headerColor = space.color;
+                    const isStation = space.type === "STATION";
+                    const displayLabel = isStation ? "🚂車站" : `💵 $${space.price}`;
+                    const nameLabel = space.name;
+                    
+                    // Assign varying pastel gradients for properties to make them "多彩" (Multi-colored)
+                    const hueOffset = (space.id * 15) % 360;
+                    cell.style.background = `linear-gradient(180deg, #ffffff 0%, hsl(${hueOffset}, 40%, 97%) 100%)`;
+                    
+                    cell.innerHTML = `
+                        <div class="city-banner" style="background-color: ${headerColor};"></div>
+                        <div class="flex flex-col items-center justify-between flex-grow w-full pb-6 relative">
+                            <span class="text-base filter drop-shadow-sm mt-0.5">${space.emoji || "🏘️"}</span>
+                            <span class="text-neutral-950 font-black tracking-wide leading-tight text-[12px] text-center mt-1 z-10" style="text-shadow: 0 0 1px rgba(255,255,255,0.8);">${nameLabel}</span>
+                            <span class="text-[9.5px] font-black bg-neutral-100 text-neutral-900 px-1.5 py-0.5 rounded border border-neutral-300 mt-auto shadow-sm">${displayLabel}</span>
+                        </div>
+                        <div id="players-cell-${space.id}" class="players-container"></div>
+                    `;
+                }
+                
+                board.appendChild(cell);
+            });
+        }
+
+        // Dynamic player management
+        function addNewPlayer() {
+            maxPlayerId++;
+            const newId = maxPlayerId;
+            
+            let availableEmojis = emojiPool.filter(e => !players.some(p => p.avatar === e));
+            if (availableEmojis.length === 0) availableEmojis = emojiPool;
+            const randomAvatar = availableEmojis[Math.floor(Math.random() * availableEmojis.length)];
+            
+            const colorIndex = (newId - 1) % playerColors.length;
+            const colorScheme = playerColors[colorIndex];
+            
+            const newPlayer = {
+                id: newId,
+                name: `玩家 ${newId}`,
+                avatar: randomAvatar,
+                position: 0,
+                color: colorScheme.bg,
+                borderColor: colorScheme.border,
+                skipNextTurn: false,
+                active: true
+            };
+            
+            players.push(newPlayer);
+            console.log(`🐣 【玩家 ${newId}】(${randomAvatar}) 加入了大富翁冒險之旅！`);
+            
+            updateBoard();
+            updateRetireSelect();
+            updateActivePlayerIndicator();
+        }
+
+        // Remove designated player
+        function triggerRetire() {
+            const select = document.getElementById("retire-select");
+            const targetId = parseInt(select.value);
+            if (!targetId) return;
+            
+            const index = players.findIndex(p => p.id === targetId);
+            if (index === -1) return;
+            
+            const p = players[index];
+            console.log(`🍂 玩家 ${p.id} (${p.avatar}) 中途退出了探險！`);
+            
+            players.splice(index, 1);
+            
+            if (players.length > 0) {
+                if (currentPlayerIndex >= players.length) {
+                    currentPlayerIndex = 0;
+                }
+            } else {
+                currentPlayerIndex = 0;
+                console.log("⚠️ 畫面上已經沒有任何玩家囉！請點擊【加人】按鈕開始。");
+            }
+            
+            updateBoard();
+            updateRetireSelect();
+            updateActivePlayerIndicator();
+        }
+
+        function confirmReset() {
+            if (confirm("確定要重玩並清空所有在場玩家嗎？")) {
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            stopSpeech();
+            
+            players = [];
+            maxPlayerId = 0;
+            currentPlayerIndex = 0;
+            roundCount = 1;
+            isRolling = false;
+            
+            for (let i = 0; i < 5; i++) {
+                addNewPlayer();
+            }
+            
+            console.log("🌈 冒險大富翁重新啟動！歡迎各位小朋友！預設5位動物玩家已出發！");
+            
+            document.getElementById("winner-modal").classList.add("opacity-0", "pointer-events-none");
+            document.getElementById("wiki-modal").classList.add("opacity-0", "pointer-events-none");
+            document.getElementById("card-modal").classList.add("opacity-0", "pointer-events-none");
+            
+            updateBoard();
+            updateRetireSelect();
+            updateActivePlayerIndicator();
+        }
+
+        // Update UI components
+        function updateBoard() {
+            document.querySelectorAll(".players-container").forEach((container) => {
+                container.innerHTML = "";
+            });
+            
+            players.forEach((p) => {
+                if (!p.active) return;
+                const container = document.getElementById(`players-cell-${p.position}`);
+                if (container) {
+                    const badge = document.createElement("div");
+                    badge.className = "player-badge";
+                    badge.style.backgroundColor = p.color;
+                    badge.style.borderColor = p.borderColor;
+                    badge.style.borderWidth = "2.5px";
+                    badge.innerHTML = `${p.avatar}<div class="player-id-label" style="background-color: ${p.borderColor};">${p.id}</div>`;
+                    container.appendChild(badge);
+                }
+            });
+        }
+
+        function updateRetireSelect() {
+            const select = document.getElementById("retire-select");
+            select.innerHTML = "";
+            
+            if (players.length === 0) {
+                const opt = document.createElement("option");
+                opt.text = "無玩家";
+                select.appendChild(opt);
+                return;
+            }
+            
+            players.forEach((p) => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.text = `玩家 ${p.id} (${p.avatar})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function updateActivePlayerIndicator() {
+            const ind = document.getElementById("active-player-indicator");
+            const round = document.getElementById("current-round-info");
+            
+            round.textContent = `第 ${roundCount} 回合`;
+            
+            if (players.length === 0) {
+                ind.innerHTML = `<span class="text-gray-500">無玩家</span>`;
+                return;
+            }
+            
+            const p = players[currentPlayerIndex];
+            ind.innerHTML = `<span style="color: ${p.borderColor}; font-weight: 900;">${p.name} (${p.avatar})</span>`;
+        }
+
+        // --- 1.5-Second Dice Roulette Animation ---
+        function rollDice() {
+            if (isRolling || players.length === 0) return;
+            
+            const diceBtn = document.getElementById("dice-btn");
+            const diceEl = document.getElementById("game-dice");
+            const statusEl = document.getElementById("roll-status");
+            
+            isRolling = true;
+            diceBtn.disabled = true;
+            diceBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+            diceBtn.classList.remove("bg-orange-600", "hover:bg-orange-700");
+            
+            diceEl.classList.add("shaking-animation");
+            statusEl.textContent = "🎲 骰子劇烈搖晃中...";
+            console.log(`🎲 ${players[currentPlayerIndex].name} 開始搖動骰子...`);
+            
+            // Web Audio sound rolling effect
+            synth.playDice();
+            
+            const faces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+            let rouletteCellId = 0;
+            
+            // Rapid cycle timer for roulette effect on both dice face and board cells
+            let interval = setInterval(() => {
+                // Change dice face rapidly
+                const randFace = faces[Math.floor(Math.random() * 6)];
+                diceEl.textContent = randFace;
+                
+                // Highlight board cells sequentially like a real roulette wheel
+                document.querySelectorAll('.grid-cell').forEach(c => {
+                    c.classList.remove('bg-yellow-100', 'ring-4', 'ring-yellow-400', 'z-30');
+                });
+                const activeCell = document.getElementById(`space-${rouletteCellId}`);
+                if (activeCell) {
+                    activeCell.classList.add('bg-yellow-100', 'ring-4', 'ring-yellow-400', 'z-30');
+                }
+                
+                rouletteCellId = (rouletteCellId + 1) % 36;
+                synth.playTick(); // Tick click sound
+            }, 65);
+            
+            // Roll finished after exactly 1.5 seconds (1500 ms) with NO count down display
+            setTimeout(async () => {
+                clearInterval(interval);
+                diceEl.classList.remove("shaking-animation");
+                
+                // Clean up remaining roulette highlights
+                document.querySelectorAll('.grid-cell').forEach(c => {
+                    c.classList.remove('bg-yellow-100', 'ring-4', 'ring-yellow-400', 'z-30');
+                });
+                
+                // Settle score
+                const score = Math.floor(Math.random() * 6) + 1;
+                diceEl.textContent = faces[score - 1];
+                statusEl.textContent = `擲出 ${score} 點！`;
+                
+                const p = players[currentPlayerIndex];
+                console.log(`🎲 ${p.name} 擲出了 ${score} 點！`);
+                
+                // V10 New State: Settle score and prompt user decision (move or stay)
+                pendingMovePlayer = p;
+                pendingMoveScore = score;
+                
+                const decPanel = document.getElementById("decision-panel");
+                const decTitle = document.getElementById("decision-title");
+                if (decPanel && decTitle) {
+                    decTitle.innerHTML = `<span style="color: ${p.borderColor}; font-weight: 900;">${p.avatar} ${p.name}</span> 擲出 <strong>${score}</strong> 點！<br>請問是否要前進？`;
+                    decPanel.classList.remove("hidden");
+                }
+                
+            }, 1500);
+        }
+
+        // Animate players movement one grid at a time
+        async function animateMovement(player, steps) {
+            if (player.skipNextTurn) {
+                player.skipNextTurn = false;
+                console.log(`💤 ${player.name} (${player.avatar}) 本回合暫停，在原地休息一輪。`);
+                advanceTurn();
+                return;
+            }
+            
+            let currentStep = 0;
+            return new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (currentStep < steps) {
+                        player.position = (player.position + 1) % 36;
+                        currentStep++;
+                        updateBoard();
+                        synth.playTick(); // Short walking sound
+                        
+                        // Rule check: 起點 is at index 0.
+                        if (player.position === 0) {
+                            clearInterval(interval);
+                            triggerWinner(player);
+                            resolve();
+                            return;
+                        }
+                    } else {
+                        clearInterval(interval);
+                        handleLanding(player);
+                        resolve();
+                    }
+                }, 320);
+            });
+        }
+
+        // Landing behaviors
+        async function handleLanding(player) {
+            const space = boardSpaces[player.position];
+            
+            // Bowling check: check if there are other active players already on this cell
+            const otherPlayersOnCell = players.filter(p => p.active && p.id !== player.id && p.position === player.position);
+            if (otherPlayersOnCell.length > 0) {
+                console.log(`🎳 【${player.name}】撞格了！同一格上有其他玩家，啟動保齡球大賽！`);
+                // Stop speech if playing
+                stopSpeech();
+                // Gather competitors (current landing player is index 0)
+                const competitors = [player, ...otherPlayersOnCell];
+                startBowlingTournament(competitors);
+                return; // Prevent normal landing messages or queries from appearing!
+            }
+            console.log(`📍 ${player.name} 在【${space.name}】安穩著陸。`);
+            
+            if (space.type === "CITY" || space.type === "STATION") {
+                // V10: Trigger non-blocking scenic landscape load in the center frame!
+                loadScenicLandscape(space.name);
+                await fetchAndDisplayWiki(space.name);
+            } else if (space.type === "CHANCE" || space.type === "DESTINY") {
+                activeCardType = space.type;
+                const cdBtn = document.getElementById("chance-destiny-btn");
+                cdBtn.disabled = false;
+                cdBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                cdBtn.classList.add("bg-orange-500", "hover:bg-orange-600", "glow-btn");
+                
+                const diceBtn = document.getElementById("dice-btn");
+                diceBtn.disabled = true;
+                diceBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+                
+                document.getElementById("chance-status").textContent = `🔔 請點擊右側按鈕抽取 ${space.name} 卡片！`;
+                console.log(`✨ 【${player.name}】踏上了 ${space.name} 區域，快點擊按鈕看看會發生什麼！`);
+            } else if (space.type === "AIRPORT") {
+                console.log(`✈️ 【${player.name}】來到了桃園國際機場！獲得免費機票，『立即再擲一次』！`);
+                updateActivePlayerIndicator();
+            } else if (space.type === "TRAIN") {
+                console.log(`🚂 【${player.name}】搭上了阿里山櫻花小火車！心曠神怡，『立即再擲一次』！`);
+                updateActivePlayerIndicator();
+            } else if (space.type === "SHOP") {
+                console.log(`🛍️ 【${player.name}】在台北街頭瘋狂購物飆極限！滿載而歸，但『下回合須暫停一次』！`);
+                player.skipNextTurn = true;
+                advanceTurn();
+            } else {
+                advanceTurn();
+            }
+        }
+
+        function advanceTurn() {
+            if (players.length === 0) return;
+            
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            
+            if (currentPlayerIndex === 0) {
+                roundCount++;
+            }
+            
+            updateActivePlayerIndicator();
+        }
+
+        // Web Speech API (Text-to-Speech) System
+        let currentUtterance = null;
+        let isTtsPaused = false;
+
+        function startTTS(title, text, trivia) {
+            if (!('speechSynthesis' in window)) {
+                document.getElementById("tts-status-text").textContent = "不支援語音功能";
+                return;
+            }
+            
+            window.speechSynthesis.cancel(); // Terminate previous utterance
+            
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = text;
+            const cleanText = tempDiv.textContent || tempDiv.innerText || "";
+            
+            const fullSpeechText = `，介紹項目：${title}。介紹內容：${cleanText}。小學堂問答：${trivia}`;
+            
+            currentUtterance = new SpeechSynthesisUtterance(fullSpeechText);
+            currentUtterance.lang = "zh-TW";
+            
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.includes("zh-TW") || v.lang.includes("zh-HK") || v.lang.includes("zh-CN"));
+            if (preferredVoice) {
+                currentUtterance.voice = preferredVoice;
+            }
+            
+            currentUtterance.rate = 0.95; // child-friendly reading speed
+            currentUtterance.pitch = 1.05; // slightly cheerful pitch
+            
+            currentUtterance.onstart = () => {
+                isTtsPaused = false;
+                document.getElementById("tts-status-text").textContent = "正在語音朗讀中...";
+                document.getElementById("tts-active-ping").classList.remove("hidden");
+            };
+            
+            currentUtterance.onend = () => {
+                document.getElementById("tts-status-text").textContent = "朗讀完畢";
+                document.getElementById("tts-active-ping").classList.add("hidden");
+            };
+            
+            currentUtterance.onerror = (e) => {
+                console.log("TTS Error: ", e);
+                document.getElementById("tts-status-text").textContent = "語音播放完畢";
+                document.getElementById("tts-active-ping").classList.add("hidden");
+            };
+            
+            window.speechSynthesis.speak(currentUtterance);
+        }
+
+        function pauseSpeech() {
+            if (window.speechSynthesis && window.speechSynthesis.speaking && !isTtsPaused) {
+                window.speechSynthesis.pause();
+                isTtsPaused = true;
+                document.getElementById("tts-status-text").textContent = "語音朗讀已暫停";
+                document.getElementById("tts-active-ping").classList.add("hidden");
+            }
+        }
+
+        function resumeSpeech() {
+            if (window.speechSynthesis && isTtsPaused) {
+                window.speechSynthesis.resume();
+                isTtsPaused = false;
+                document.getElementById("tts-status-text").textContent = "正在繼續朗讀...";
+                document.getElementById("tts-active-ping").classList.remove("hidden");
+            }
+        }
+
+        function stopSpeech() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                isTtsPaused = false;
+                document.getElementById("tts-status-text").textContent = "語音功能已關閉";
+                document.getElementById("tts-active-ping").classList.add("hidden");
+            }
+        }
+
+        function replaySpeech() {
+            const title = document.getElementById("wiki-title").textContent;
+            const content = document.getElementById("wiki-content").textContent;
+            const trivia = document.getElementById("wiki-trivia-text").textContent;
+            startTTS(title, content, trivia);
+        }
+
+        // Multi-Source Search API (Wikipedia + DuckDuckGo Web General Searches)
+        async function fetchAndDisplayWiki(cityName) {
+            const modal = document.getElementById("wiki-modal");
+            document.getElementById("wiki-city-name").textContent = cityName;
+            document.getElementById("wiki-category-name").textContent = "正在聯網查詢中...";
+            document.getElementById("wiki-title").textContent = "正在向多個網站即時搜尋資訊...";
+            document.getElementById("wiki-content").innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在聯網向多個旅遊觀光、美食部落格與官方文獻搜尋【${cityName}】的精彩地理特色與有趣知識...`;
+            document.getElementById("wiki-image").src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80";
+            
+            modal.classList.remove("opacity-0", "pointer-events-none");
+            
+            const categories = Object.keys(countyThemes);
+            const selectedCategory = categories[Math.floor(Math.random() * categories.length)];
+            const keywords = countyThemes[selectedCategory];
+            const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
+            
+            document.getElementById("wiki-theme-tag").textContent = selectedCategory;
+            
+            let catEmoji = "🌿";
+            if (selectedCategory === "歷史足跡") catEmoji = "📜";
+            else if (selectedCategory === "地理探索") catEmoji = "🗺️";
+            else if (selectedCategory === "文化藝術") catEmoji = "🎨";
+            else if (selectedCategory === "趣聞探險") catEmoji = "💡";
+            else if (selectedCategory === "益智猜謎") catEmoji = "🧠";
+            document.getElementById("wiki-category-emoji").textContent = catEmoji;
+
+            let finalTitle = cityName;
+            let finalContent = "";
+            let finalImage = "";
+            let finalTrivia = "看完有趣的在地介紹，點擊按鈕就可以繼續遊戲囉！";
+
+            // Check if Riddle
+            if (selectedCategory === "益智猜謎") {
+                const jr = jokesAndRiddles[Math.floor(Math.random() * jokesAndRiddles.length)];
+                finalTitle = "🧠 腦力大考驗！";
+                finalContent = `<strong>【好玩謎題】：</strong><br>${jr.q}<br><br><strong>【揭曉答案】：</strong><br>${jr.a}`;
+                finalImage = "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?auto=format&fit=crop&w=400&q=80";
+                finalTrivia = "小腦袋動一動，多思考會讓大腦變得更發達、更聰明喔！";
+                
+                setTimeout(() => {
+                    renderWikiModal(cityName, selectedCategory, finalTitle, finalContent, finalImage, finalTrivia, "本地趣味猜謎");
+                }, 800);
+                return;
+            }
+
+            let searchKeyword = cityName;
+            if (cityName === "桃園縣") searchKeyword = "桃園市";
+            const searchQuery = `${searchKeyword} ${randomKeyword}`;
+            
+            // Query Wikipedia API & DuckDuckGo Broad Web API
+            const wikiSearchUrl = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(searchQuery)}&format=json&origin=*`;
+            const ddgSearchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(searchKeyword)}+${encodeURIComponent(randomKeyword)}&format=json&no_html=1&skip_disambig=1&origin=*`;
+            
+            try {
+                const [wikiRes, ddgRes] = await Promise.allSettled([
+                    fetch(wikiSearchUrl).then(r => r.json()),
+                    fetch(ddgSearchUrl).then(r => r.json())
+                ]);
+                
+                // Process Wiki first
+                if (wikiRes.status === "fulfilled" && wikiRes.value.query?.search?.length > 0) {
+                    const searchResults = wikiRes.value.query.search;
+                    const limit = Math.min(3, searchResults.length);
+                    const chosen = searchResults[Math.floor(Math.random() * limit)];
+                    const pageTitle = chosen.title;
+                    
+                    const detailUrl = `https://zh.wikipedia.org/w/api.php?action=query&prop=extracts|pageimages&exintro&explaintext&titles=${encodeURIComponent(pageTitle)}&format=json&pithumbsize=500&origin=*`;
+                    const detailResponse = await fetch(detailUrl);
+                    const detailData = await detailResponse.json();
+                    
+                    const pages = detailData.query?.pages || {};
+                    const pageId = Object.keys(pages)[0];
+                    
+                    if (pageId && pageId !== "-1") {
+                        const page = pages[pageId];
+                        finalTitle = page.title;
+                        finalContent = page.extract || "";
+                        finalImage = page.thumbnail?.source || "";
+                    }
+                }
+                
+                // Process DuckDuckGo Broad Web search results (Non-wikipedia source)
+                if (ddgRes.status === "fulfilled" && ddgRes.value) {
+                    const ddgData = ddgRes.value;
+                    if (!finalContent && ddgData.AbstractText) {
+                        finalTitle = `${cityName} 的全網即時快訊`;
+                        finalContent = ddgData.AbstractText;
+                        if (ddgData.Image) finalImage = ddgData.Image;
+                    } else if (finalContent && ddgData.AbstractText && ddgData.AbstractText.length > 25) {
+                        // Blend Wikipedia with general web travel info
+                        finalContent += `<br><br><strong>【來自台灣熱門旅遊網與美食部落格的延伸趣聞】：</strong><br>${ddgData.AbstractText}`;
+                    }
+                }
+                
+                if (finalContent.length > 320) {
+                    finalContent = finalContent.substring(0, 320) + "...";
+                }
+                
+            } catch (err) {
+                console.warn("Dynamic API search failed, running fallback system...", err);
+            }
+
+            // High quality fallback database
+            if (!finalContent) {
+                finalTitle = `${cityName} 的特色地理`;
+                finalContent = defaultFacts[cityName] || `${cityName} 是一個充滿人文和自然風光的美麗地方！這裡有許多特色景致、在地小吃與神奇故事等著各位小朋友前來探索喔！`;
+                finalImage = "https://images.unsplash.com/photo-1506485338023-6ce5f36692df?auto=format&fit=crop&w=400&q=80";
+                finalTrivia = "你知道嗎？台灣雖然不大，但每個縣市都有自己獨一無二的特色呢！";
+            }
+
+            renderWikiModal(cityName, selectedCategory, finalTitle, finalContent, finalImage, finalTrivia, `聯網雙搜尋: Wiki / DuckDuckGo 全網`);
+        }
+
+        function renderWikiModal(cityName, category, title, content, image, trivia, sourceTag) {
+            document.getElementById("wiki-category-name").textContent = category;
+            document.getElementById("wiki-title").textContent = title;
+            document.getElementById("wiki-content").innerHTML = content;
+            document.getElementById("wiki-trivia-text").textContent = trivia;
+            
+            const imgEl = document.getElementById("wiki-image");
+            if (image) {
+                imgEl.src = image;
+                document.getElementById("wiki-image-container").classList.remove("hidden");
+            } else {
+                document.getElementById("wiki-image-container").classList.add("hidden");
+            }
+            
+            document.getElementById("wiki-theme-tag").textContent = sourceTag;
+            
+            // Speech Auto Run!
+            startTTS(title, content, trivia);
+
+            // Save to LocalStorage Knowledge account (Survives reload/reset)
+            addUniqueMessage(cityName, category, title, content, trivia, sourceTag);
+        }
+
+        function closeWikiModal() {
+            stopSpeech();
+            document.getElementById("wiki-modal").classList.add("opacity-0", "pointer-events-none");
+            advanceTurn();
+        }
+
+        // --- Enriched Cards featuring Taiwanese Delicacy stories with Synth triggers ---
+        const chanceCards = [
+            { text: "🥤 喝了一大杯Ｑ彈香甜的波霸珍珠奶茶！肚子太飽走不動，在路邊打飽嗝，後退 1 步！", effect: -1, emoji: "🥤", sound: "stinky" },
+            { text: "🍲 在台南國華街吃到金黃酥脆、湯頭鮮美滑順的土魠魚羹！美味幸福度破表，興奮狂奔，前進 3 步！", effect: 3, emoji: "🍲", sound: "eat" },
+            { text: "🍘 熱騰騰、外皮Q彈十足、內餡紮實多汁並淋上微甜白醬的彰化肉圓！嚼勁拉滿！精力充沛向前衝 3 步！", effect: 3, emoji: "🍘", sound: "eat" },
+            { text: "🍳 在夜市享用外酥內嫩的黃金蚵仔煎，淋上特調粉紅醬！元氣大加分，開心直奔 3 步！", effect: 3, emoji: "🍳", sound: "eat" },
+            { text: "🧆 新北深坑老街名產麻辣臭豆腐！雖然臭氣熏天，但咬下去湯汁爆發，好吃到流淚！前進 2 步！", effect: 2, emoji: "🧆", sound: "stinky" },
+            { text: "🍓 坐高鐵直奔苗栗大湖，大口大口吃下現採的香甜鮮紅大草莓！幸福極了，前進 5 步！", effect: 5, emoji: "🍓", sound: "eat" },
+            { text: "🌭 逢甲夜市挑戰碳烤『大腸包小腸』加爆生蒜頭！蒜辣太有勁，辣到眼淚直流，倒退 2 步瘋狂灌水！", effect: -2, emoji: "🌭", sound: "stinky" },
+            { text: "🧭 在花蓮太魯閣峽谷玩耍迷失方向！退回起點重整旗鼓，並得到 2000 元出發獎金！", effect: "START", emoji: "🧭", sound: "victory" }
+        ];
+
+        const destinyCards = [
+            { text: "🚀 獲得超級噴射背包，順便在路邊買了一袋大包鹽酥雞！九層塔香氣四溢，開心地前進 5 步！", effect: 5, emoji: "🚀", sound: "eat" },
+            { text: "🐟 巧遇台灣特有種櫻花鉤吻鮭，在雪霸冷泉中翻跳！驚呼連連在原地靜靜觀察，後退 1 步！", effect: -1, emoji: "🐟", sound: "tick" },
+            { text: "🚲 騎乘 YouBike 觀光，順便喝了兩碗古早味黑糖豆花！體力恢復，前進 3 步！", effect: 3, emoji: "🚲", sound: "eat" },
+            { text: "🍧 享用滿滿芒果丁與煉乳的巨無霸芒果冰！頭腦冰到瞬間凍結（Brain Freeze），手腳發麻後退 1 步！", effect: -1, emoji: "🍧", sound: "stinky" },
+            { text: "🍞 嚐鮮台南創始名產棺材板，香濃雞肉海鮮濃湯內餡讓人太驚豔了！開心地向前奔跑 4 步！", effect: 4, emoji: "🍞", sound: "eat" },
+            { text: "🌀 觸發美食時空傳送門！瞬間直達起點/終點，恭喜贏得最終勝利！", effect: "START", emoji: "🌀", sound: "victory" },
+            { text: "🍖 品嚐屏東萬巒豬腳，皮Q肉嫩，沾上特製蒜蓉醬實在太讚啦！健步如飛，前進 4 步！", effect: 4, emoji: "🍖", sound: "eat" },
+            { text: "😴 吃太多深坑香烤臭豆腐與新竹摃丸湯！肚子太撐直接靠在百年大榕樹下睡著了，後退 3 步！", effect: -3, emoji: "😴", sound: "stinky" }
+        ];
+
+        let currentDrawnCard = null;
+
+        // --- 1.5-Second Card Draw Roulette Animation ---
+        function drawCard() {
+            if (players.length === 0) return;
+            
+            const isChance = activeCardType === "CHANCE";
+            const cards = isChance ? chanceCards : destinyCards;
+            
+            const modal = document.getElementById("card-modal");
+            const border = document.getElementById("card-modal-border");
+            const header = document.getElementById("card-modal-header");
+            const typeBadge = document.getElementById("card-type-badge");
+            const body = document.getElementById("card-modal-body");
+            const textEl = document.getElementById("card-text");
+            const emojiEl = document.getElementById("card-emoji");
+            const effectEl = document.getElementById("card-effect-hint");
+            const confirmBtn = document.getElementById("card-modal-confirm-btn");
+            
+            // Adjust Card Frame Colors
+            if (isChance) {
+                header.className = "px-6 py-4 text-white text-center font-black text-xl bg-gradient-to-r from-yellow-400 to-amber-500";
+                border.className = "bg-white rounded-3xl shadow-2xl z-10 max-w-sm w-5/6 overflow-hidden border-4 border-yellow-400 transform scale-95 transition-transform duration-300 flex flex-col";
+                typeBadge.className = "text-xs font-black tracking-wider px-2.5 py-0.5 rounded-full bg-yellow-100 text-yellow-800";
+                typeBadge.textContent = "機會 CARD";
+            } else {
+                header.className = "px-6 py-4 text-white text-center font-black text-xl bg-gradient-to-r from-orange-500 to-red-500";
+                border.className = "bg-white rounded-3xl shadow-2xl z-10 max-w-sm w-5/6 overflow-hidden border-4 border-orange-500 transform scale-95 transition-transform duration-300 flex flex-col";
+                typeBadge.className = "text-xs font-black tracking-wider px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800";
+                typeBadge.textContent = "命運 CARD";
+            }
+            
+            // Show Card Modal
+            modal.classList.remove("opacity-0", "pointer-events-none");
+            modal.querySelector(".transform").classList.remove("scale-95");
+            modal.querySelector(".transform").classList.add("scale-100");
+            
+            // 1.5s Roulette high speed spinning effect
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+            body.classList.add("roulette-bg-flash");
+            effectEl.textContent = "🎲 美食羅盤急速旋轉中...";
+            
+            const spinEmojis = ["🥤", "🍲", "🍘", "🍳", "🧆", "🍓", "🌭", "🚀", "🐟", "🚲", "🍧", "🍞", "🌀", "🍖", "😴"];
+            
+            let spinInterval = setInterval(() => {
+                const randomCardSnippet = cards[Math.floor(Math.random() * cards.length)];
+                textEl.textContent = randomCardSnippet.text;
+                emojiEl.textContent = spinEmojis[Math.floor(Math.random() * spinEmojis.length)];
+                synth.playTick(); // Tick click audio
+            }, 75);
+            
+            // Stop spin after exactly 1.5 seconds (1500 ms) with NO timer displayed
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                body.classList.remove("roulette-bg-flash");
+                
+                // Finalize Drawn Card
+                currentDrawnCard = cards[Math.floor(Math.random() * cards.length)];
+                textEl.textContent = currentDrawnCard.text;
+                emojiEl.textContent = currentDrawnCard.emoji;
+                
+                // Trigger specialized Synth Sound Effects!
+                if (currentDrawnCard.sound === "eat") {
+                    synth.playEat();
+                } else if (currentDrawnCard.sound === "stinky") {
+                    synth.playStinky();
+                } else if (currentDrawnCard.sound === "victory") {
+                    synth.playVictory();
+                } else {
+                    synth.playTick();
+                }
+                
+                let effectLabel = "";
+                if (typeof currentDrawnCard.effect === "number") {
+                    effectLabel = currentDrawnCard.effect > 0 ? `🏃 效果：前進 ${currentDrawnCard.effect} 步` : `⏪ 效果：後退 ${Math.abs(currentDrawnCard.effect)} 步`;
+                } else {
+                    effectLabel = "📍 效果：回到起點終點！";
+                }
+                effectEl.textContent = effectLabel;
+                
+                confirmBtn.disabled = false;
+                confirmBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                confirmBtn.classList.add("bg-gray-800", "hover:bg-gray-900");
+                
+            }, 1500);
+        }
+
+        async function applyCardAndClose() {
+            const modal = document.getElementById("card-modal");
+            modal.classList.add("opacity-0", "pointer-events-none");
+            
+            const cdBtn = document.getElementById("chance-destiny-btn");
+            cdBtn.disabled = true;
+            cdBtn.classList.add("bg-gray-400", "cursor-not-allowed");
+            cdBtn.classList.remove("bg-orange-500", "hover:bg-orange-600", "glow-btn");
+            
+            const diceBtn = document.getElementById("dice-btn");
+            diceBtn.disabled = false;
+            diceBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+            
+            document.getElementById("chance-status").textContent = "走到「機會/命運」格即可點擊！";
+            
+            const p = players[currentPlayerIndex];
+            const card = currentDrawnCard;
+            
+            if (card) {
+                console.log(`🎬 套用卡片效果：${card.text}`);
+                
+                if (card.effect === "START") {
+                    p.position = 0;
+                    updateBoard();
+                    console.log(`🚩 ${p.name} 順利抵達了起點！`);
+                    triggerWinner(p);
+                } else if (typeof card.effect === "number") {
+                    if (card.effect > 0) {
+                        await animateMovement(p, card.effect);
+                    } else {
+                        let steps = Math.abs(card.effect);
+                        for (let i = 0; i < steps; i++) {
+                            p.position = (p.position - 1 + 36) % 36;
+                            updateBoard();
+                            synth.playTick(); // Tick slide back sound
+                            await new Promise(r => setTimeout(r, 320));
+                        }
+                        advanceTurn();
+                    }
+                }
+            }
+        }
+
+        // --- V10 New Functions: Decision to Move and Unique Scenic Landscape Loading ---
+        function confirmDecision(shouldMove) {
+            const decPanel = document.getElementById("decision-panel");
+            if (decPanel) {
+                decPanel.classList.add("hidden");
+            }
+            
+            const diceBtn = document.getElementById("dice-btn");
+            const p = pendingMovePlayer;
+            const score = pendingMoveScore;
+            
+            if (shouldMove) {
+                console.log(`${p.name} 決定前進 ${score} 步！`);
+                // Move player step-by-step
+                animateMovement(p, score).then(() => {
+                    isRolling = false;
+                    diceBtn.disabled = false;
+                    diceBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                    diceBtn.classList.add("bg-orange-600", "hover:bg-orange-700");
+                });
+            } else {
+                console.log(`${p.name} 決定留在原地。`);
+                
+                // Reset rolling state so dice can be rolled again
+                isRolling = false;
+                diceBtn.disabled = false;
+                diceBtn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                diceBtn.classList.add("bg-orange-600", "hover:bg-orange-700");
+                
+                // Advance turn directly without movement
+                advanceTurn();
+            }
+        }
+
+        
+        // Verified Direct Landscape Photos for all 36 spaces (No stock camera/notebook images!)
+        const verifiedScenicPhotos = {
+            '起點': [
+                'https://images.unsplash.com/photo-1470004914212-05527e49370b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台北市': [
+                'https://images.unsplash.com/photo-1508248467071-08de552e7f84?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1571474004502-c1def214ac6d?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1543158266-0066955047b1?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=800&q=80'
+            ],
+            '陽明山': [
+                'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台北火車站': [
+                'https://images.unsplash.com/photo-1515165562839-978bbcf1b267?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1532105956626-9569c03602f6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80'
+            ],
+            '桃園縣': [
+                'https://images.unsplash.com/photo-1500835556837-99ac94a94552?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=800&q=80'
+            ],
+            '新竹縣': [
+                'https://images.unsplash.com/photo-1506485338023-6ce5f36692df?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80'
+            ],
+            '北埔': [
+                'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506485338023-6ce5f36692df?auto=format&fit=crop&w=800&q=80'
+            ],
+            '桃園機場': [
+                'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80'
+            ],
+            '苗栗縣': [
+                'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80'
+            ],
+            '南投縣': [
+                'https://images.unsplash.com/photo-1511497584788-876761465586?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80'
+            ],
+            '日月潭': [
+                'https://images.unsplash.com/photo-1511497584788-876761465586?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1439853949127-fa647821eba0?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台中火車站': [
+                'https://images.unsplash.com/photo-1517649763962-0c623266010b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
+            ],
+            '彰化縣': [
+                'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80'
+            ],
+            '雲林縣': [
+                'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80'
+            ],
+            '嘉義市': [
+                'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'
+            ],
+            '阿里山火車': [
+                'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台南市': [
+                'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'
+            ],
+            '高雄市': [
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=800&q=80'
+            ],
+            '屏東市': [
+                'https://images.unsplash.com/photo-1519046904884-53103b34b201?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
+            ],
+            '高雄火車站': [
+                'https://images.unsplash.com/photo-1517649763962-0c623266010b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1532105956626-9569c03602f6?auto=format&fit=crop&w=800&q=80'
+            ],
+            '墾丁': [
+                'https://images.unsplash.com/photo-1519046904884-53103b34b201?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?auto=format&fit=crop&w=800&q=80'
+            ],
+            '宜蘭市': [
+                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'
+            ],
+            '花蓮市': [
+                'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?auto=format&fit=crop&w=800&q=80'
+            ],
+            '商店': [
+                'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=800&q=80'
+            ],
+            '合歡山': [
+                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台東縣': [
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80'
+            ],
+            '知本': [
+                'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+            ],
+            '台東火車站': [
+                'https://images.unsplash.com/photo-1517649763962-0c623266010b?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=800&q=80'
+            ],
+            '金門縣': [
+                'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=800&q=80'
+            ],
+            '澎湖縣': [
+                'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+                'https://images.unsplash.com/photo-1519046904884-53103b34b201?auto=format&fit=crop&w=800&q=80'
+            ],
+            '機會': [
+                'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+            ],
+            '命運': [
+                'https://images.unsplash.com/photo-1470004914212-05527e49370b?auto=format&fit=crop&w=800&q=80'
+            ]
+        };
+
+
+        async function loadScenicLandscape(cityName) {
+            const imgEl = document.getElementById("center-landscape-img");
+            const captionEl = document.getElementById("center-landscape-caption");
+            const spinner = document.getElementById("landscape-loading-spinner");
+            
+            if (!imgEl || !captionEl) return;
+            
+            if (spinner) spinner.classList.remove("hidden");
+            captionEl.textContent = `🔍 正在載入 ${cityName} 的美麗風景...`;
+            
+            let normalizedCity = cityName;
+            if (cityName === "桃園縣") normalizedCity = "桃園市";
+            else if (cityName === "台北火車站") normalizedCity = "臺北車站";
+            else if (cityName === "台中火車站") normalizedCity = "臺中車站";
+            else if (cityName === "高雄火車站") normalizedCity = "高雄車站";
+            else if (cityName === "台東火車站") normalizedCity = "臺東車站";
+            else if (cityName === "阿里山火車") normalizedCity = "阿里山森林鐵路";
+            
+            if (spaceImageIndex[cityName] === undefined) {
+                spaceImageIndex[cityName] = 0;
+            }
+            
+            let selectedUrl = "";
+            const currentVisit = spaceImageIndex[cityName];
+            
+            // 1. On first visit, attempt Wikipedia pageimages API (only real landmark photos)
+            if (currentVisit === 0) {
+                const searchUrl = `https://zh.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=thumbnail&pithumbsize=800&titles=${encodeURIComponent(normalizedCity)}&format=json&origin=*`;
+                try {
+                    const res = await fetch(searchUrl);
+                    const data = await res.json();
+                    const pages = data.query?.pages || {};
+                    const pageId = Object.keys(pages)[0];
+                    if (pageId && pageId !== "-1" && pages[pageId].thumbnail?.source) {
+                        const wikiImgUrl = pages[pageId].thumbnail.source;
+                        // Strictly filter out non-scenery images (maps, camera/office stock photos, coats of arms, flags, etc.)
+                        const isNoise = /(flag|emblem|logo|icon|map|svg|stub|shield|seal|marker|location|locator|district|subdivision|division|diagram|camera|notebook|office|pen|paper)/i.test(wikiImgUrl);
+                        if (!isNoise) {
+                            selectedUrl = wikiImgUrl;
+                            shownImagesGlobal.add(selectedUrl);
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Wikipedia pageimages fetch failed for " + normalizedCity, e);
+                }
+            }
+            
+            // 2. If first visit Wikipedia returned nothing, OR on subsequent visits to ensure NO duplicate camera/stock photos:
+            if (!selectedUrl) {
+                const photoList = verifiedScenicPhotos[cityName] || verifiedScenicPhotos['台北市'];
+                // Pick photo using visit index so subsequent visits show different real landscape photos!
+                const photoIdx = currentVisit % photoList.length;
+                selectedUrl = photoList[photoIdx];
+                shownImagesGlobal.add(selectedUrl);
+            }
+            
+            // Advance visit index for next time
+            spaceImageIndex[cityName] = currentVisit + 1;
+            
+            // Apply Image to UI
+            imgEl.onload = () => {
+                if (spinner) spinner.classList.add("hidden");
+                captionEl.textContent = `📍 ${cityName} 實時風景寫真`;
+            };
+            imgEl.onerror = () => {
+                // Guaranteed Taiwan mountain landscape fallback
+                imgEl.src = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80";
+                if (spinner) spinner.classList.add("hidden");
+                captionEl.textContent = `📍 ${cityName} (景點寫真)`;
+            };
+            
+            imgEl.src = selectedUrl;
+        }
+
+
+        function triggerWinner(player) {
+            console.log(`👑✨ 恭喜贏家！【${player.name}】(${player.avatar}) 率先抵達/經過起點終點，贏得最終勝利！`);
+            synth.playVictory(); // Run fanfare
+            
+            const wm = document.getElementById("winner-modal");
+            document.getElementById("winner-avatar").textContent = player.avatar;
+            document.getElementById("winner-announcement").textContent = `${player.name} 率先回到了終點，成為本次探險之王！`;
+            
+            wm.classList.remove("opacity-0", "pointer-events-none");
+            wm.querySelector(".transform").classList.remove("scale-95");
+            wm.querySelector(".transform").classList.add("scale-100");
+        }
+
+
+        // Censorship Function: Filters out regional administrative divisions/districts
+        function filterAdministrativeDivisions(text) {
+            if (!text) return text;
+            console.log("正在檢索過濾行政區劃資料...");
+            
+            // Split text by sentences (Chinese punctuation: 。 or ； or ！ or ？ or newline)
+            const sentences = text.split(/([。；！？\n])/);
+            const filteredSentences = [];
+            
+            for (let i = 0; i < sentences.length; i++) {
+                const sentence = sentences[i];
+                if (!sentence) continue;
+                
+                // Keep punctuation markers
+                if (/^[。；！？\n]$/.test(sentence)) {
+                    filteredSentences.push(sentence);
+                    continue;
+                }
+                
+                // Censorship check for administrative keywords
+                const hasAdminKeywords = /(行政區劃|下轄|分為.*區|共有.*區|個區|鄉鎮市區|轄區|區分|劃分|合併為|市設.*區|區：)/.test(sentence);
+                
+                // Count occurrences of district labels (e.g. "區、", "鄉、", "鎮、")
+                const listMatches = sentence.match(/[一-龥]+[區鄉鎮市][、，]/g);
+                const hasList = listMatches && listMatches.length >= 2;
+                
+                if (hasAdminKeywords || hasList) {
+                    console.log(`🚫 發現並已屏蔽行政區劃列表資訊: "${sentence}"`);
+                    continue; // Censor! Do not include in final text
+                }
+                
+                filteredSentences.push(sentence);
+            }
+            
+            let result = filteredSentences.join("").trim();
+            
+            // If the filtered content became too empty, return empty to trigger child-friendly fallback
+            if (result.length < 25) {
+                console.log("篩選後本文過少，自動載入趣味名勝與地方誌資料。");
+                return "";
+            }
+            return result;
+        }
+
+        // --- Interactive Bowling Tournament System ---
+        let bowlingState = {
+            competitors: [],
+            scores: {}, // playerId -> score
+            activeCompetitorIndex: 0,
+            isAiming: false,
+            powerValue: 0,
+            powerDirection: 1,
+            animationFrameId: null,
+            winner: null
+        };
+
+        function startBowlingTournament(competitors) {
+            bowlingState.competitors = competitors;
+            bowlingState.scores = {};
+            competitors.forEach(p => bowlingState.scores[p.id] = null);
+            bowlingState.activeCompetitorIndex = 0;
+            bowlingState.winner = null;
+            
+            // Show modal and hide footer button
+            const modal = document.getElementById("bowling-modal");
+            document.getElementById("bowling-footer").classList.add("hidden");
+            document.getElementById("bowling-throw-btn").classList.remove("hidden");
+            
+            modal.classList.remove("opacity-0", "pointer-events-none");
+            modal.querySelector(".transform").classList.remove("scale-95");
+            modal.querySelector(".transform").classList.add("scale-100");
+            
+            updateBowlingListUI();
+            startAimingForCurrentCompetitor();
+        }
+
+        function updateBowlingListUI() {
+            const listEl = document.getElementById("bowling-competitors-list");
+            listEl.innerHTML = "";
+            
+            bowlingState.competitors.forEach(p => {
+                const score = bowlingState.scores[p.id];
+                const scoreText = score === null ? "⏳ 準備中" : (score === 10 ? "🌟 STRIKE 全倒！" : `🎳 擊倒 ${score} 瓶`);
+                const isWinner = bowlingState.winner && bowlingState.winner.id === p.id;
+                const isActive = !bowlingState.winner && bowlingState.competitors[bowlingState.activeCompetitorIndex].id === p.id;
+                
+                const item = document.createElement("div");
+                item.className = `p-2.5 rounded-xl flex items-center justify-between border text-[11px] font-bold transition duration-200 ${
+                    isWinner 
+                        ? 'bg-yellow-50 border-yellow-400 text-yellow-900 ring-2 ring-yellow-300' 
+                        : (isActive ? 'bg-blue-50 border-blue-400 text-blue-900 animate-pulse ring-2 ring-blue-200' : 'bg-gray-50 border-gray-150 text-gray-700')
+                }`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-base">${p.avatar}</span>
+                        <span class="font-extrabold">${p.name}</span>
+                    </div>
+                    <span class="font-black text-indigo-950">${scoreText}</span>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        function resetPinsVisual() {
+            const container = document.getElementById("bowling-pins-grid");
+            if (!container) return;
+            
+            // Render styled 3D bowling pins resembling real white pins with red stripes
+            const createPinHtml = (num) => `
+                <div class="pin bowling-pin-container transition duration-500 select-none" id="bowling-pin-${num}" style="display: inline-block; position: relative;">
+                    <div class="bowling-pin-gfx">
+                        <div class="bowling-pin-neck-stripe"></div>
+                        <div class="bowling-pin-neck-stripe-2"></div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = `
+                <!-- Row 1 (Back row, 4 Pins) -->
+                <div class="flex gap-4 justify-center">
+                    ${createPinHtml(7)}
+                    ${createPinHtml(8)}
+                    ${createPinHtml(9)}
+                    ${createPinHtml(10)}
+                </div>
+                <!-- Row 2 (3 Pins) -->
+                <div class="flex gap-4 justify-center -mt-1.5">
+                    ${createPinHtml(4)}
+                    ${createPinHtml(5)}
+                    ${createPinHtml(6)}
+                </div>
+                <!-- Row 3 (2 Pins) -->
+                <div class="flex gap-5 justify-center -mt-1.5">
+                    ${createPinHtml(2)}
+                    ${createPinHtml(3)}
+                </div>
+                <!-- Row 4 (Front row, 1 Pin) -->
+                <div class="flex justify-center -mt-1.5">
+                    ${createPinHtml(1)}
+                </div>
+            `;
+        }
+
+        function startAimingForCurrentCompetitor() {
+            const p = bowlingState.competitors[bowlingState.activeCompetitorIndex];
+            
+            document.getElementById("bowling-turn-title").textContent = `🎯 輪到你了！抓準指針！`;
+            document.getElementById("bowling-active-avatar").textContent = p.avatar;
+            document.getElementById("bowling-active-name").textContent = p.name;
+            document.getElementById("bowling-btn-text").textContent = `發射 ${p.avatar} 的滾石保齡球！`;
+            
+            resetPinsVisual();
+            
+            // Reset ball
+            const ball = document.getElementById("bowling-ball-visual");
+            ball.className = "absolute bottom-4 left-1/2 -translate-x-1/2 text-2xl z-20 pointer-events-none opacity-0";
+            
+            // Start Aiming Oscillating Loop
+            bowlingState.isAiming = true;
+            let power = 0;
+            let dir = 3.8; // Oscillation speed
+            
+            function animateSlider() {
+                if (!bowlingState.isAiming) return;
+                power += dir;
+                if (power >= 100) {
+                    power = 100;
+                    dir = -3.8;
+                } else if (power <= 0) {
+                    power = 0;
+                    dir = 3.8;
+                }
+                
+                const bar = document.getElementById("bowling-power-indicator");
+                if (bar) {
+                    bar.style.width = "12%";
+                    bar.style.marginLeft = `${power - 6}%`;
+                    if (parseFloat(bar.style.marginLeft) < 0) bar.style.marginLeft = "0%";
+                    if (parseFloat(bar.style.marginLeft) > 88) bar.style.marginLeft = "88%";
+                }
+                
+                bowlingState.powerValue = power;
+                bowlingState.animationFrameId = requestAnimationFrame(animateSlider);
+            }
+            bowlingState.animationFrameId = requestAnimationFrame(animateSlider);
+            
+            updateBowlingListUI();
+        }
+
+        function fireBowlingBall() {
+            if (!bowlingState.isAiming) return;
+            bowlingState.isAiming = false; // Stop the aim loop
+            cancelAnimationFrame(bowlingState.animationFrameId);
+            
+            const p = bowlingState.competitors[bowlingState.activeCompetitorIndex];
+            const ball = document.getElementById("bowling-ball-visual");
+            const btn = document.getElementById("bowling-throw-btn");
+            
+            btn.disabled = true;
+            btn.classList.add("bg-gray-400", "cursor-not-allowed");
+            
+            // Play ball rolling sound effect
+            synth.playDice(); // Roll sound
+            
+            // Animate Ball Rolling Upward
+            ball.classList.remove("opacity-0");
+            ball.classList.add("roll-animation");
+            
+            // Compute score based on how close to center (50%)
+            const diff = Math.abs(50 - bowlingState.powerValue);
+            let pins = 10;
+            if (diff <= 3) pins = 10; // STRIKE!
+            else if (diff <= 10) pins = 9;
+            else if (diff <= 18) pins = 8;
+            else if (diff <= 25) pins = 7;
+            else if (diff <= 31) pins = 6;
+            else if (diff <= 37) pins = 5;
+            else if (diff <= 43) pins = 4;
+            else if (diff <= 47) pins = 2;
+            else pins = 0; // Gutter ball!
+            
+            // Ball hits pins after 700ms
+            setTimeout(() => {
+                // Pin scatter effect
+                const pinsElements = Array.from(document.querySelectorAll("#bowling-pins-grid .pin"));
+                const shuffled = pinsElements.sort(() => 0.5 - Math.random());
+                
+                for (let i = 0; i < pins; i++) {
+                    const pin = shuffled[i];
+                    if (pin) {
+                        const scatterX = `${(Math.random() * 80 - 40)}px`;
+                        const scatterY = `${-(Math.random() * 60 + 40)}px`;
+                        const scatterR = `${(Math.random() * 180 - 90)}deg`;
+                        
+                        pin.style.setProperty('--scatter-x', scatterX);
+                        pin.style.setProperty('--scatter-y', scatterY);
+                        pin.style.setProperty('--scatter-r', scatterR);
+                        
+                        pin.textContent = "❌";
+                        pin.classList.add("pin-hit");
+                    }
+                }
+                
+                // Sound Effects for Hits
+                if (pins === 10) {
+                    synth.playVictory(); // Loud Strike Sound!
+                    document.getElementById("bowling-turn-title").textContent = "🌟 STRIKE! 完美全倒！";
+                } else if (pins > 0) {
+                    synth.playEat(); // Crashing sound
+                    document.getElementById("bowling-turn-title").textContent = `擊倒了 ${pins} 支球瓶！`;
+                } else {
+                    synth.playStinky(); // Gutter farty sound
+                    document.getElementById("bowling-turn-title").textContent = "🎳 洗溝了！一個都沒倒！";
+                }
+                
+                bowlingState.scores[p.id] = pins;
+                updateBowlingListUI();
+                
+                // Wait 2 seconds to let kids see results, then advance or decide winner
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.remove("bg-gray-400", "cursor-not-allowed");
+                    
+                    bowlingState.activeCompetitorIndex++;
+                    
+                    if (bowlingState.activeCompetitorIndex < bowlingState.competitors.length) {
+                        // Move to next player
+                        startAimingForCurrentCompetitor();
+                    } else {
+                        // All players have thrown! Settle match
+                        settleBowlingMatch();
+                    }
+                }, 2000);
+                
+            }, 700);
+        }
+
+        function settleBowlingMatch() {
+            const competitorScores = bowlingState.competitors.map(comp => ({
+                player: comp,
+                score: bowlingState.scores[comp.id]
+            }));
+            
+            competitorScores.sort((a, b) => b.score - a.score);
+            const highestScore = competitorScores[0].score;
+            const winners = competitorScores.filter(cs => cs.score === highestScore);
+            
+            if (winners.length === 1) {
+                // Single clear winner!
+                const winner = winners[0].player;
+                bowlingState.winner = winner;
+                
+                document.getElementById("bowling-turn-title").innerHTML = "👑 冠軍誕生！";
+                document.getElementById("bowling-active-avatar").textContent = winner.avatar;
+                document.getElementById("bowling-active-name").innerHTML = `<span class="text-lg font-black text-yellow-600">🥇 ${winner.name} 獲勝！</span><br><span class="text-xs text-gray-500 font-bold">成功擊倒 ${highestScore} 支球瓶！獎勵：前進一格！</span>`;
+                
+                document.getElementById("bowling-throw-btn").classList.add("hidden");
+                document.getElementById("bowling-footer").classList.remove("hidden");
+                
+                synth.playVictory();
+                updateBowlingListUI();
+            } else {
+                // There is a tie! Trigger a Sudden-Death Tie-Breaker among the tied players!
+                console.log("平手對決！啟動驟死延長賽。");
+                const tiedPlayers = winners.map(w => w.player);
+                
+                document.getElementById("bowling-turn-title").innerHTML = "⚔️ 比分相同！平手驟死賽！";
+                document.getElementById("bowling-active-name").innerHTML = `<span class="text-sm font-black text-red-600">平手對決！</span><br><span class="text-[11px] text-gray-500">再次擲球，爭奪唯一的前進大獎！</span>`;
+                
+                setTimeout(() => {
+                    bowlingState.competitors = tiedPlayers;
+                    bowlingState.scores = {};
+                    tiedPlayers.forEach(p => bowlingState.scores[p.id] = null);
+                    bowlingState.activeCompetitorIndex = 0;
+                    startAimingForCurrentCompetitor();
+                }, 2200);
+            }
+        }
+
+        async function closeBowlingModal() {
+            const modal = document.getElementById("bowling-modal");
+            modal.classList.add("opacity-0", "pointer-events-none");
+            
+            const winner = bowlingState.winner;
+            if (winner) {
+                console.log(`🏆 關閉保齡球大賽。勝利玩家 ${winner.name} 獎勵前進一格！`);
+                // Move winner forward by 1 grid! This automatically triggers handleLanding for their new position.
+                await animateMovement(winner, 1);
+            } else {
+                advanceTurn();
+            }
+        }
+        
+        // --- LocalStorage Persistence & Unique Message Storage System ---
+        const STORAGE_KEY = "monopoly_explorer_messages_v6";
+
+        function getSavedMessages() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                console.error("Failed to read localStorage:", e);
+                return [];
+            }
+        }
+
+        function saveMessages(msgArray) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(msgArray));
+            } catch (e) {
+                console.error("Failed to write localStorage:", e);
+            }
+        }
+
+        // Add a message if it's unique
+        function addUniqueMessage(cityName, category, title, text, trivia, sourceName) {
+            if (!text || text.trim() === "" || text.includes("載入中...")) return;
+            
+            let list = getSavedMessages();
+            
+            const cleanText = text.replace(/<[^>]*>/g, '').trim();
+            const exists = list.some(item => {
+                const itemClean = item.text.replace(/<[^>]*>/g, '').trim();
+                return itemClean === cleanText || item.title === title;
+            });
+            
+            if (exists) {
+                console.log("此訊息已在存摺中，不重複記錄。");
+                return;
+            }
+            
+            const now = new Date();
+            const timeStr = `${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const newMsg = {
+                id: Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+                time: timeStr,
+                cityName: cityName,
+                category: category,
+                title: title,
+                text: text,
+                trivia: trivia,
+                source: sourceName
+            };
+            
+            // Size limit: max 100 messages. Substitute oldest first
+            if (list.length >= 100) {
+                list.shift(); // Remove oldest
+            }
+            list.push(newMsg);
+            
+            saveMessages(list);
+            renderSavedMessages();
+        }
+
+        // Render saved messages to UI
+        function renderSavedMessages() {
+            const container = document.getElementById("persisted-messages-container");
+            const countEl = document.getElementById("messages-count");
+            if (!container || !countEl) return;
+            
+            const list = getSavedMessages();
+            countEl.textContent = `${list.length} / 100`;
+            
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <p class="text-gray-400 font-bold text-center py-6">尚未探索到各縣市的奧秘。踩中各縣市解鎖有趣的地理、歷史或笑話，即可累積至本存摺喔！</p>
+                `;
+                return;
+            }
+            
+            let html = "";
+            [...list].reverse().forEach((item) => {
+                let catEmoji = "🌿";
+                if (item.category === "歷史足跡") catEmoji = "📜";
+                else if (item.category === "地理探索") catEmoji = "🗺️";
+                else if (item.category === "文化藝術") catEmoji = "🎨";
+                else if (item.category === "趣聞探險") catEmoji = "💡";
+                else if (item.category === "益智猜謎") catEmoji = "🧠";
+
+                const escTitle = item.title.replace(/'/g, "\'").replace(/"/g, '&quot;');
+                const escText = item.text.replace(/<[^>]*>/g, '').replace(/'/g, "\'").replace(/"/g, '&quot;');
+                const escTrivia = item.trivia.replace(/'/g, "\'").replace(/"/g, '&quot;');
+
+                html += `
+                <div class="flex items-start gap-3 p-3 bg-orange-50/40 hover:bg-orange-100/40 rounded-xl border border-orange-100/80 transition duration-150 shadow-sm">
+                    <div class="flex flex-col items-center justify-center shrink-0 w-16 text-center border-r border-orange-100/60 pr-2">
+                        <span class="text-xs font-black text-orange-950">${item.cityName}</span>
+                        <span class="text-[9px] text-gray-400 mt-1 font-mono leading-none">${item.time}</span>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="bg-amber-100 text-amber-900 border border-amber-200 text-[9px] font-black px-1.5 py-0.5 rounded-lg">${catEmoji} ${item.category}</span>
+                            <span class="font-black text-orange-950 text-xs">${item.title}</span>
+                            <span class="text-[9px] bg-green-100 text-green-800 border border-green-200 px-1 py-0.2 rounded-full font-bold ml-auto">${item.source || '即時聯網'}</span>
+                        </div>
+                        <p class="text-xs text-gray-700 leading-relaxed mt-1 text-justify font-extrabold">${item.text}</p>
+                        <p class="text-[10px] text-orange-900 font-bold bg-orange-100/30 px-2 py-1 rounded-lg border border-orange-100/50 mt-1.5"><span class="font-black">💡 動動腦學堂：</span>${item.trivia}</p>
+                    </div>
+                    <button onclick="startTTS('${escTitle}', '${escText}', '${escTrivia}')" class="bg-white hover:bg-orange-50 text-orange-850 border border-orange-200 p-2 rounded-xl text-xs self-center transition active:scale-95 shadow-sm shrink-0" title="語音朗讀此訊息">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Clear stored messages
+        function clearSavedMessages() {
+            if (confirm("確定要清空目前儲存的所有探險訊息存摺嗎？這會清除過去所有解鎖的文化記錄喔！")) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderSavedMessages();
+            }
+        }
+
+        // Inits on window load
+        window.onload = () => {
+            renderBoardFramework();
+            resetGame();
+            renderSavedMessages(); 
+        };
+    </script>
+</body>
+</html>
